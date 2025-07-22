@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Conda
+.conda/
+
+# Base de datos (opcional - puedes incluirla o no)
+database/ejercicios.db
+*.db
+
+# Archivos generados
+output/
+*.pdf
+*.tex
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Streamlit
+.streamlit/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Temporary files
+*.tmp
+*.temp

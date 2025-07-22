@@ -1,0 +1,46 @@
+# Sistema de Gestión de Ejercicios - Señales y Sistemas
+# Dependencias de Python
+
+# Framework web principal
+streamlit>=1.28.0
+
+# Manipulación de datos
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Base de datos (incluida en Python estándar)
+# sqlite3 - incluido en Python
+
+# Generación de documentos
+pylatex>=1.4.1
+reportlab>=4.0.0
+
+# Procesamiento de fechas
+python-dateutil>=2.8.0
+
+# Visualización (opcional pero recomendado)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.15.0
+
+# Utilidades para archivos
+Pillow>=10.0.0
+
+# Parsing de documentos (para futuras funcionalidades)
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+
+# Testing (desarrollo)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Formateo de código (desarrollo)
+black>=23.7.0
+isort>=5.12.0
+
+# Type checking (desarrollo)
+mypy>=1.5.0
+
+# Documentación (desarrollo)
+sphinx>=7.1.0
+sphinx-rtd-theme>=1.3.0
