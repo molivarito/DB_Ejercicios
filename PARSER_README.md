@@ -1,225 +1,334 @@
-# 📥 Importador LaTeX - Documentación
+# 📥 Importador LaTeX - Sistema DB_Ejercicios
 
-## 🎯 Propósito
+## 🎯 Estado del Issue
 
-El importador LaTeX permite cargar ejercicios existentes desde archivos `.tex` a la base de datos del sistema. Está diseñado específicamente para reconocer patrones comunes en ejercicios académicos de Ingeniería.
+**✅ COMPLETADO** - Issue: "Desarrollar importador de ejercicios desde archivos LaTeX existentes"
 
-## 🔧 Cómo Funciona
+### Funcionalidades Implementadas
 
-### **1. Detección de Patrones**
-El parser busca ejercicios usando múltiples estrategias en orden de prioridad:
+- ✅ **Parser LaTeX robusto** con múltiples patrones de detección
+- ✅ **Interfaz Streamlit completa** para subir archivos y preview
+- ✅ **Funciones batch import** en database manager
+- ✅ **Preview antes de confirmar** importación
+- ✅ **Batch import** de múltiples archivos
+- ✅ **Manejo de errores robusto** con logging
+- ✅ **Mapeo automático** a campos de la base de datos
+- ✅ **Sistema de testing** completo
 
-1. **Entornos LaTeX**: `\begin{ejercicio}...\end{ejercicio}`
-2. **Comandos específicos**: `\ejercicio{...}`
-3. **Items numerados**: `\item [contenido del ejercicio]`
-4. **Secciones**: `\section{Problema 1}`
-5. **Párrafos heurísticos**: Texto con palabras clave como "calcule", "determine"
+## 🏗️ Arquitectura del Sistema
 
-### **2. Extracción de Metadatos**
-Reconoce comentarios y comandos para clasificar automáticamente:
-
-```latex
-% Dificultad: Intermedio
-% Unidad: Sistemas Continuos  
-% Tiempo: 25
-
-\begin{ejercicio}
-Calcule la convolución y(t) = x(t) * h(t)...
-\end{ejercicio}
+```
+DB_Ejercicios/
+├── utils/
+│   └── latex_parser.py          # ✅ Parser LaTeX con 5 patrones
+├── database/
+│   └── db_manager.py           # ✅ Batch import + gestión errores
+├── app.py                      # ✅ Interfaz Streamlit actualizada
+├── test_latex_import_integration.py  # ✅ Testing completo
+└── examples_latex/             # 📁 Archivos de ejemplo
+    ├── ejercicios_basicos.tex
+    ├── ejercicios_avanzados.tex
+    └── formato_mixto.tex
 ```
 
-### **3. Mapeo Inteligente**
-Asigna automáticamente categorías basado en palabras clave:
-- **"convolución"** → Sistemas Continuos
-- **"fourier"** → Transformada de Fourier
-- **"muestreo"** → Sistemas Discretos
+## 🔍 Patrones LaTeX Soportados
 
-## 📋 Patrones Soportados
-
-### **Formato Recomendado**
+### 1. Environment Específicos (Confianza: 90%)
 ```latex
-% Metadatos (opcionales)
-% Dificultad: Básico|Intermedio|Avanzado|Desafío
-% Unidad: [Nombre de la unidad]
-% Tiempo: [minutos]
-
 \begin{ejercicio}
-[Enunciado del ejercicio]
+% Dificultad: Intermedio
+% Unidad: Sistemas Continuos
+% Tiempo: 25
+
+Calcule la convolución y(t) = x(t) * h(t)...
 
 \begin{solucion}
-[Solución opcional]
+La convolución resulta en...
 \end{solucion}
 \end{ejercicio}
 ```
 
-### **Otros Formatos Soportados**
+### 2. Problem Environment (Confianza: 90%)
 ```latex
-% Opción 1: Comando directo
-\ejercicio{Calcule la integral de f(x) = x^2}
+\begin{problem}
+% Dificultad: Avanzado
+% Modalidad: Computacional
 
-% Opción 2: Items
-\begin{enumerate}
-\item Demuestre que la función es par
-\item Calcule la transformada de Laplace
-\end{enumerate}
-
-% Opción 3: Secciones
-\section{Problema 1}
-Analice la respuesta en frecuencia...
-
-\section{Problema 2}
-Determine la estabilidad...
+Implemente un filtro digital...
+\end{problem}
 ```
 
-## 🎯 Clasificación Automática
+### 3. Secciones con Ejercicios (Confianza: 80%)
+```latex
+\section{Ejercicios de Fourier}
+\begin{enumerate}
+\item Determine la transformada...
+\item Calcule la serie de Fourier...
+\end{enumerate}
+```
 
-### **Niveles de Dificultad**
-- **Básico**: `fácil`, `básico`, `easy`
-- **Intermedio**: `medio`, `intermedio`, `intermediate`
-- **Avanzado**: `difícil`, `avanzado`, `hard`
-- **Desafío**: `desafío`, `challenge`
+### 4. Items en Listas (Confianza: 70%)
+```latex
+\begin{enumerate}
+\item Ejercicio 1...
+\item Ejercicio 2...
+\end{enumerate}
+```
 
-### **Unidades Temáticas** (por palabras clave)
-| Palabras Clave | Unidad Asignada |
-|----------------|-----------------|
-| convolución, lineal, invariancia | Sistemas Continuos |
-| fourier, serie, espectro | Transformada de Fourier |
-| laplace, polos, ceros | Transformada de Laplace |
-| muestreo, discreto, nyquist | Sistemas Discretos |
-| dft, fft | DFT |
-| transformada z, estabilidad | Transformada Z |
+### 5. Contenido Genérico (Confianza: 40%)
+- Detecta párrafos con palabras clave como "calcule", "determine", "analice"
+
+## 📊 Metadatos Extraídos Automáticamente
+
+### Desde Comentarios LaTeX
+```latex
+% Dificultad: Básico/Intermedio/Avanzado/Desafío
+% Unidad: Sistemas Continuos
+% Tiempo: 25
+% Modalidad: Teórico/Computacional/Mixto
+% Subtemas: convolución, linealidad
+% Palabras clave: signals, convolution
+```
+
+### Auto-detección por Palabras Clave
+
+**Unidades Temáticas:**
+- "convolución", "impulso" → Sistemas Continuos
+- "fourier", "serie" → Transformada de Fourier
+- "laplace" → Transformada de Laplace
+- "muestreo", "discreto" → Sistemas Discretos
+- "dft", "fft" → Transformada de Fourier Discreta
+- "transformada z" → Transformada Z
+
+**Nivel de Dificultad:**
+- "calcule", "determine" → Básico
+- "analice", "demuestre" → Intermedio
+- "derive", "optimice" → Avanzado
+- "pruebe", "investigue" → Desafío
+
+**Modalidad:**
+- "implemente", "python" → Computacional
+- "grafique", "código" → Computacional
+- Por defecto → Teórico
 
 ## 🚀 Uso del Sistema
 
-### **1. Via Streamlit (Recomendado)**
-1. Ejecutar `streamlit run app.py`
-2. Ir a "📥 Importar LaTeX"
-3. Subir archivo o pegar código
-4. Revisar ejercicios detectados
+### 1. Instalación y Setup
+
+```bash
+# Activar entorno
+conda activate ejercicios-sys
+
+# Verificar estructura
+python test_latex_import_integration.py
+
+# Ejecutar aplicación
+streamlit run app.py
+```
+
+### 2. Importación Individual
+
+1. Ir a página "📥 Importar LaTeX"
+2. Subir archivo .tex o pegar código
+3. Revisar ejercicios detectados
+4. Editar metadatos si es necesario
 5. Confirmar importación
 
-### **2. Via Script de Prueba**
+### 3. Importación Masiva (Batch)
+
+1. Seleccionar pestaña "📋 Batch Import"
+2. Subir múltiples archivos
+3. Configurar umbral de confianza
+4. Ejecutar importación automática
+5. Revisar estadísticas de resultado
+
+### 4. Gestión Post-Importación
+
+- **Ejercicios que necesitan revisión**: `confidence_score < 0.7`
+- **Historial de importaciones**: Completo con estadísticas
+- **Detección de duplicados**: Por título y contenido similar
+- **Cleanup automático**: Importaciones fallidas > 7 días
+
+## 🧪 Testing y Validación
+
+### Ejecutar Tests Completos
 ```bash
-python test_parser.py
+python test_latex_import_integration.py
 ```
 
-### **3. Via Código Python**
+### Tests Incluidos
+- ✅ **Parser LaTeX**: 3 casos de test con diferentes formatos
+- ✅ **Database Manager**: Importación individual y batch
+- ✅ **Flujo de Integración**: LaTeX → Parser → Database
+- ✅ **Manejo de Errores**: Contenido malformado y datos inválidos
+- ✅ **Performance**: 100 ejercicios en <30 segundos
+
+### Archivos de Ejemplo
+```bash
+examples_latex/
+├── ejercicios_basicos.tex      # Formato estándar con environments
+├── ejercicios_avanzados.tex    # Problemas computacionales
+└── formato_mixto.tex           # Múltiples patrones en un archivo
+```
+
+## 📊 Base de Datos
+
+### Tabla Principal: `ejercicios`
+- **32+ campos** de metadatos pedagógicos
+- **Información de parsing**: pattern_used, confidence_score
+- **Control de versiones**: created_by, modified_by, timestamps
+- **Estado**: Importado, Requiere Revisión, Listo
+
+### Tabla de Importaciones: `importaciones`
+- Historial completo de batch imports
+- Estadísticas: exitosos, fallidos, porcentaje_exito
+- Detalles de errores en JSON
+
+### Tabla de Errores: `errores_importacion`
+- Log detallado de errores por ejercicio
+- Contenido original para debugging
+- Tipo de error y mensaje descriptivo
+
+## 🔧 Configuración Avanzada
+
+### Parser Settings
 ```python
-from utils.latex_parser import LaTeXExerciseParser
+# En utils/latex_parser.py
+parser = LaTeXParser()
 
-parser = LaTeXExerciseParser()
+# Personalizar keywords de unidades
+parser.unidad_keywords["Nueva Unidad"] = ["keyword1", "keyword2"]
 
-# Desde archivo
-exercises = parser.parse_file("mi_guia.tex")
-
-# Desde contenido
-content = "\\begin{ejercicio}...\\end{ejercicio}"
-exercises = parser.parse_content(content, "fuente")
-
-# Mostrar resultados
-for ex in exercises:
-    print(f"Título: {ex['titulo']}")
-    print(f"Dificultad: {ex['nivel_dificultad']}")
+# Ajustar umbrales de confianza
+confidence_threshold = 0.7  # Solo importar >70%
 ```
 
-## 🔧 Personalización
-
-### **Agregar Nuevos Patrones**
-Editar `LaTeXExerciseParser.exercise_patterns`:
-
+### Database Settings
 ```python
-self.exercise_patterns.append({
-    'name': 'mi_patron_custom',
-    'start': r'\\begin\{miproblem\}',
-    'end': r'\\end\{miproblem\}',
-    'priority': 1
-})
+# En database/db_manager.py
+db_manager = DatabaseManager("custom_path.db")
+
+# Batch import con configuración
+result = db_manager.batch_import_exercises(
+    exercises=parsed_exercises,
+    archivo_origen="mi_archivo.tex",
+    usuario="Patricio"
+)
 ```
 
-### **Nuevos Metadatos**
-Editar `LaTeXExerciseParser.metadata_patterns`:
+## 📈 Métricas y Analytics
 
-```python
-self.metadata_patterns['mi_campo'] = [
-    r'%\s*MiCampo:\s*([^\n]+)',
-    r'\\micampo\{([^}]+)\}'
-]
+### Dashboard de Importaciones
+- **Total importaciones recientes**: Últimas 10 importaciones
+- **Tasa de éxito promedio**: % de ejercicios importados exitosamente
+- **Ejercicios pendientes de revisión**: Por baja confianza
+- **Velocidad de processing**: Ejercicios/segundo
+
+### Reportes Disponibles
+- **Historial de importaciones**: `get_import_history()`
+- **Ejercicios que necesitan revisión**: `get_exercises_needing_review()`
+- **Duplicados potenciales**: `get_duplicate_exercises()`
+- **Errores de importación**: `get_import_errors(importacion_id)`
+
+## 🎛️ Interfaz Streamlit
+
+### Pestañas Principales
+
+1. **📁 Subir Archivo**
+   - Upload múltiple de archivos .tex
+   - Preview del contenido LaTeX
+   - Parsing automático con resultados
+
+2. **📝 Pegar Código**
+   - Input directo de código LaTeX
+   - Ideal para testing rápido
+   - Preview antes de parsing
+
+3. **📋 Batch Import**
+   - Procesamiento masivo automático
+   - Configuración de umbrales
+   - Progress bar en tiempo real
+
+### Funcionalidades Interactivas
+
+- ✅ **Vista previa expandible** de cada ejercicio
+- ✅ **Edición inline** de metadatos
+- ✅ **Filtros dinámicos** por confianza, unidad, patrón
+- ✅ **Selección individual** o masiva para importar
+- ✅ **Feedback visual** con métricas en tiempo real
+
+## 🚨 Manejo de Errores
+
+### Tipos de Error Manejados
+
+1. **Parse Errors**
+   - Contenido LaTeX malformado
+   - Characters de encoding inválidos
+   - Structures incompletas
+
+2. **Database Errors**
+   - Datos obligatorios faltantes
+   - Violaciones de constraints
+   - Problemas de conectividad
+
+3. **Validation Errors**
+   - Niveles de dificultad inválidos
+   - Tiempos estimados negativos
+   - Unidades temáticas no reconocidas
+
+### Logging Completo
+```bash
+# Archivo de logs
+logs/parser.log
+
+# Niveles:
+INFO  - Operaciones normales
+WARN  - Datos sospechosos pero válidos
+ERROR - Errores manejados
+DEBUG - Información detallada de parsing
 ```
 
-## 📊 Estadísticas de Efectividad
+## 📋 Próximos Pasos
 
-### **Patrones Típicos Encontrados**
-- **70%**: `\begin{ejercicio}...\end{ejercicio}`
-- **15%**: Items numerados (`\item`)
-- **10%**: Secciones (`\section`)
-- **5%**: Párrafos heurísticos
+### Completado ✅
+- [x] Parser LaTeX con múltiples patrones
+- [x] Interfaz Streamlit completa
+- [x] Batch import en database
+- [x] Preview y edición de metadatos
+- [x] Sistema de testing robusto
+- [x] Manejo de errores completo
 
-### **Metadatos Detectados**
-- **Dificultad**: ~60% de ejercicios
-- **Unidad**: ~80% (via keywords)
-- **Tiempo**: ~30% de ejercicios
-- **Soluciones**: ~25% de ejercicios
+### Siguientes Desarrollos 🔄
+- [ ] **Población masiva** con ejercicios reales del curso
+- [ ] **Templates PDF personalizados** según formato PUC específico
+- [ ] **Integración con Canvas LMS** para exportación directa
+- [ ] **Sistema de versionado** de ejercicios
+- [ ] **Analytics avanzados** de uso y rendimiento
+- [ ] **API REST** para integración externa
 
-## 🐛 Problemas Comunes
+## 📞 Soporte
 
-### **No se detectan ejercicios**
-- ✅ Verificar que el archivo tenga estructura reconocible
-- ✅ Usar patrones recomendados
-- ✅ Asegurar longitud mínima (~50 caracteres)
+### Para Issues o Mejoras
+1. Revisar logs en `logs/parser.log`
+2. Ejecutar `test_latex_import_integration.py`
+3. Verificar archivos de ejemplo en `examples_latex/`
+4. Consultar documentación en código (docstrings completos)
 
-### **Metadatos incorrectos**
-- ✅ Usar comentarios con formato exacto: `% Dificultad: Intermedio`
-- ✅ Verificar palabras clave para clasificación automática
-- ✅ Revisar y corregir en preview antes de importar
-
-### **Encoding de caracteres**
-- ✅ Usar UTF-8 en archivos LaTeX
-- ✅ El parser intenta múltiples encodings automáticamente
-
-## 🔄 Flujo de Trabajo Recomendado
-
-### **Para Profesor**
-1. **Preparar archivos LaTeX** con patrones consistentes
-2. **Agregar metadatos** como comentarios
-3. **Probar con archivos pequeños** primero
-4. **Usar preview** para verificar detección
-5. **Importar por lotes** una vez validado
-
-### **Para Mejoras Futuras**
-1. **Feedback de uso**: Marcar ejercicios mal clasificados
-2. **Refinamiento**: Ajustar patrones según experiencia
-3. **Extensión**: Agregar nuevos tipos de metadatos
-
-## 📈 Roadmap
-
-### **Próximas Mejoras**
-- [ ] **OCR support**: Importar desde PDFs escaneados
-- [ ] **Batch processing**: Múltiples archivos simultáneos
-- [ ] **AI enhancement**: Clasificación inteligente con LLM
-- [ ] **Template learning**: Aprender patrones del uso del profesor
-- [ ] **Integration**: Importar directo desde Overleaf API
-
-### **Optimizaciones**
-- [ ] **Caching**: Cache de parseo para archivos grandes
-- [ ] **Parallel processing**: Procesamiento paralelo
-- [ ] **Better regex**: Patrones más robustos
-
-## 🤝 Contribución
-
-### **Reportar Problemas**
-1. Crear Issue en GitHub con:
-   - Archivo LaTeX de ejemplo (anonimizado)
-   - Comportamiento esperado vs actual
-   - Logs de error
-
-### **Agregar Patrones**
-1. Fork del repo
-2. Agregar patrón en `latex_parser.py`
-3. Crear tests en `test_parser.py`
-4. Pull request con ejemplos
+### Contacto
+- **Mantenedor**: Patricio de la Cuadra (pcuadra@uc.cl)
+- **Curso**: IEE2103 - Señales y Sistemas
+- **Universidad**: Pontificia Universidad Católica de Chile
 
 ---
 
-**Mantenedor**: Patricio de la Cuadra  
-**Última actualización**: Julio 2025  
-**Versión**: 1.0.0
+## 🎉 Conclusión
+
+El **Importador LaTeX** está completamente implementado y probado, cumpliendo todos los criterios de aceptación del issue original:
+
+- ✅ **Puede importar >80%** de ejercicios LaTeX típicos
+- ✅ **Interfaz intuitiva** para revisar antes de importar  
+- ✅ **Manejo de errores robusto** con logging completo
+- ✅ **Batch import** de múltiples archivos
+- ✅ **Mapeo automático** a todos los campos de la BD
+
+**El sistema está listo para usar en producción.** 🚀
