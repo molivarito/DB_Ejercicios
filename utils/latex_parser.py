@@ -1,5 +1,5 @@
 """
-Importador de ejercicios desde archivos LaTeX
+Importador de ejercicios desde archivos LaTeX - VERSIÓN CORREGIDA
 Sistema de Gestión de Ejercicios - Señales y Sistemas
 """
 
@@ -20,41 +20,30 @@ except ImportError:
     st = MockStreamlit()
 
 class LaTeXExerciseParser:
-    """Parser para extraer ejercicios desde archivos LaTeX"""
+    """Parser para extraer ejercicios desde archivos LaTeX - VERSIÓN CORREGIDA"""
     
     def __init__(self):
         # Patrones específicos para formato de Patricio
         self.exercise_patterns = [
-            # Patrón 1: Items en enumerate dentro de subsecciones
+            # Patrón 1: Items en enumerate dentro de subsecciones (PRINCIPAL)
             {
                 'name': 'subsection_items',
                 'pattern': r'\\subsection\*\{([^}]+)\}.*?\\begin\{enumerate\}(.*?)\\end\{enumerate\}',
                 'priority': 1
             },
-            # Patrón 2: Items individuales (fallback)
-            {
-                'name': 'individual_items',
-                'pattern': r'\\item\s+(.*?)(?=\\item|\\end\{enumerate\}|\\ifanswers|\Z)',
-                'priority': 2
-            },
-            # Patrón 3: Entornos ejercicio (genérico)
+            # Patrón 2: Entornos ejercicio (genérico)
             {
                 'name': 'ejercicio_environment',
                 'start': r'\\begin\{ejercicio\}',
                 'end': r'\\end\{ejercicio\}',
-                'priority': 3
-            },
-            # Patrón 4: Secciones numeradas
-            {
-                'name': 'section_exercises',
-                'pattern': r'\\(sub)?section\*?\{([^}]+)\}(.*?)(?=\\(sub)?section|\Z)',
-                'priority': 4
+                'priority': 2
             }
         ]
         
         # Patrones para soluciones específicas del formato
         self.solution_patterns = [
-            r'\\ifanswers\s*\{\\color\{red\}.*?\\textbf\{Solución:\}(.*?)\}\s*\\fi',
+            r'\\ifanswers\s*\{\s*\\color\{red\}.*?\\textbf\{Solución:\}\s*(.*?)\s*\}\s*\\fi',
+            r'\\ifanswers\s*\{\\color\{red\}.*?\\textbf\{Solución:\}\s*(.*?)\}\s*\\fi',
             r'\\ifanswers\s*\{\\color\{red\}(.*?)\}\s*\\fi',
             r'\\begin\{solucion\}(.*?)\\end\{solucion\}'
         ]
@@ -75,11 +64,6 @@ class LaTeXExerciseParser:
                 r'%\s*Tiempo:\s*(\d+)',
                 r'\\tiempo\{(\d+)\}',
                 r'%.*?(\d+)\s*min'
-            ],
-            'solution': [
-                r'\\begin\{solucion\}(.*?)\\end\{solucion\}',
-                r'\\solucion\{([^}]+)\}',
-                r'%\s*Sol:\s*([^\\n]+)'
             ]
         }
     
@@ -117,32 +101,24 @@ class LaTeXExerciseParser:
         # Limpiar contenido
         content = self._clean_latex_content(content)
         
-        # Intentar cada patrón en orden de prioridad
-        for pattern_info in self.exercise_patterns:
-            pattern_exercises = self._apply_pattern(content, pattern_info, source)
-            if pattern_exercises:
-                exercises.extend(pattern_exercises)
-                break  # Usar solo el primer patrón que funcione
+        # Usar específicamente el parser para formato de Patricio
+        exercises = self._parse_patricio_format_v4(content, source)
         
-        # Si no encontramos ejercicios con patrones específicos, 
-        # intentar división por párrafos/secciones
+        # Si no encontramos ejercicios, intentar otros patrones
         if not exercises:
             exercises = self._fallback_extraction(content, source)
         
         # Enriquecer con metadatos
         for exercise in exercises:
-            exercise.update(self._extract_metadata(exercise['raw_content']))
+            exercise.update(self._extract_metadata(exercise.get('raw_content', '')))
             exercise['fuente'] = source
-            exercise['año_creacion'] = 2024  # Default
+            exercise['año_creacion'] = 2024
         
         return exercises
     
     def _clean_latex_content(self, content: str) -> str:
         """Limpia contenido LaTeX removiendo comandos no esenciales"""
-        # Remover comentarios completos
-        content = re.sub(r'^%.*$', '', content, flags=re.MULTILINE)
-        
-        # Remover comandos de formato que no necesitamos
+        # Remover comandos de preámbulo
         format_commands = [
             r'\\documentclass\{[^}]+\}',
             r'\\usepackage\{[^}]+\}',
@@ -158,160 +134,8 @@ class LaTeXExerciseParser:
         
         return content.strip()
     
-    def _apply_pattern(self, content: str, pattern_info: Dict, source: str) -> List[Dict]:
-        """Aplica un patrón específico para extraer ejercicios"""
-        exercises = []
-        
-        # Si es el patrón de subsecciones, usar el parser específico de Patricio
-        if pattern_info['name'] == 'subsection_items':
-            return self._parse_patricio_format(content, source)
-        
-        if 'start' in pattern_info and 'end' in pattern_info:
-            # Patrón de entorno (begin/end)
-            pattern = f"{pattern_info['start']}(.*?){pattern_info['end']}"
-            matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
-            
-            for i, match in enumerate(matches, 1):
-                exercise = self._create_exercise_dict(
-                    title=f"Ejercicio {i}",
-                    content=match.strip(),
-                    raw_content=match,
-                    pattern_used=pattern_info['name'],
-                    source=source
-                )
-                exercises.append(exercise)
-                
-        elif 'pattern' in pattern_info:
-            # Patrón de expresión regular directa
-            matches = re.findall(pattern_info['pattern'], content, re.DOTALL | re.IGNORECASE)
-            
-            for i, match in enumerate(matches, 1):
-                # Si el match es una tupla (grupos múltiples), tomar el último grupo
-                if isinstance(match, tuple):
-                    match = match[-1] if match else ""
-                
-                exercise = self._create_exercise_dict(
-                    title=f"Ejercicio {i}",
-                    content=str(match).strip(),
-                    raw_content=str(match),
-                    pattern_used=pattern_info['name'],
-                    source=source
-                )
-                exercises.append(exercise)
-        
-        return exercises
-    
-    def _fallback_extraction(self, content: str, source: str) -> List[Dict]:
-        """Extracción de respaldo cuando no se encuentran patrones específicos"""
-        exercises = []
-        
-        # Dividir por párrafos significativos
-        paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
-        
-        # Filtrar párrafos que parezcan ejercicios (tienen cierta longitud y estructura)
-        exercise_paragraphs = []
-        for para in paragraphs:
-            if (len(para) > 50 and  # Longitud mínima
-                ('?' in para or 'calcul' in para.lower() or 'determin' in para.lower() or
-                 'encuentr' in para.lower() or 'demuestre' in para.lower())):
-                exercise_paragraphs.append(para)
-        
-        # Crear ejercicios
-        for i, para in enumerate(exercise_paragraphs, 1):
-            exercise = self._create_exercise_dict(
-                title=f"Ejercicio {i}",
-                content=para,
-                raw_content=para,
-                pattern_used='fallback_paragraphs',
-                source=source
-            )
-            exercises.append(exercise)
-        
-        return exercises
-    
-    def _create_exercise_dict(self, title: str, content: str, raw_content: str, 
-                            pattern_used: str, source: str) -> Dict:
-        """Crea diccionario de ejercicio con estructura estándar"""
-        return {
-            'titulo': title,
-            'enunciado': self._clean_exercise_content(content),
-            'raw_content': raw_content,
-            'pattern_used': pattern_used,
-            'fuente': source,
-            'unidad_tematica': 'Por determinar',
-            'nivel_dificultad': 'Intermedio',  # Default
-            'modalidad': 'Teórico',  # Default
-            'tiempo_estimado': 20,  # Default
-            'estado': 'En revisión',
-            'palabras_clave': []
-        }
-    
-    def _clean_exercise_content(self, content: str) -> str:
-        """Limpia el contenido del ejercicio"""
-        # Remover comandos LaTeX comunes pero mantener el contenido matemático
-        content = re.sub(r'\\textbf\{([^}]+)\}', r'\1', content)  # Bold
-        content = re.sub(r'\\textit\{([^}]+)\}', r'\1', content)  # Italic
-        content = re.sub(r'\\emph\{([^}]+)\}', r'\1', content)   # Emphasis
-        
-        # Mantener matemáticas pero limpiar espacios
-        content = re.sub(r'\s+', ' ', content)
-        content = content.strip()
-        
-        return content
-    
-    def _extract_metadata(self, content: str) -> Dict:
-        """Extrae metadatos del contenido del ejercicio"""
-        metadata = {}
-        
-        for meta_type, patterns in self.metadata_patterns.items():
-            for pattern in patterns:
-                match = re.search(pattern, content, re.IGNORECASE | re.DOTALL)
-                if match:
-                    value = match.group(1).strip()
-                    
-                    # Procesar según el tipo
-                    if meta_type == 'difficulty':
-                        metadata['nivel_dificultad'] = self._normalize_difficulty(value)
-                    elif meta_type == 'unit':
-                        metadata['unidad_tematica'] = self._normalize_unit(value)
-                    elif meta_type == 'time':
-                        try:
-                            metadata['tiempo_estimado'] = int(value)
-                        except ValueError:
-                            pass
-                    elif meta_type == 'solution' and value:
-                        metadata['solucion_completa'] = self._clean_exercise_content(value)
-                    
-                    break  # Usar solo el primer match
-        
-        return metadata
-    
-    def _normalize_difficulty(self, difficulty: str) -> str:
-        """Normaliza el nivel de dificultad"""
-        difficulty = difficulty.lower().strip()
-        
-        mapping = {
-            'facil': 'Básico',
-            'fácil': 'Básico', 
-            'basico': 'Básico',
-            'básico': 'Básico',
-            'easy': 'Básico',
-            'medio': 'Intermedio',
-            'intermedio': 'Intermedio',
-            'intermediate': 'Intermedio',
-            'dificil': 'Avanzado',
-            'difícil': 'Avanzado',
-            'avanzado': 'Avanzado',
-            'hard': 'Avanzado',
-            'desafio': 'Desafío',
-            'desafío': 'Desafío',
-            'challenge': 'Desafío'
-        }
-        
-        return mapping.get(difficulty, 'Intermedio')
-    
-    def _parse_patricio_format(self, content: str, source: str) -> List[Dict]:
-        """Parser específico para el formato de Patricio - versión mejorada"""
+    def _parse_patricio_format_v4(self, content: str, source: str) -> List[Dict]:
+        """Parser específico para el formato de Patricio - VERSIÓN 4 CORREGIDA"""
         exercises = []
         
         # Buscar subsecciones con ejercicios
@@ -322,10 +146,10 @@ class LaTeXExerciseParser:
             # Mapear título de subsección a unidad temática
             unit = self._map_subsection_to_unit(subsection_title)
             
-            # Nueva estrategia: buscar bloques completos ejercicio+solución
-            exercises_in_subsection = self._extract_complete_exercises(subsection_content)
+            # NUEVA LÓGICA CORREGIDA: Extraer ejercicios completos con enumerate balanceado
+            exercises_in_subsection = self._extract_complete_exercises_v4(subsection_content)
             
-            for i, (enunciado, solucion) in enumerate(exercises_in_subsection, 1):
+            for i, (enunciado, solucion, raw_content) in enumerate(exercises_in_subsection, 1):
                 if enunciado.strip():  # Solo si hay contenido
                     exercise = {
                         'titulo': f"{subsection_title} - Ejercicio {i}",
@@ -338,127 +162,181 @@ class LaTeXExerciseParser:
                         'fuente': source,
                         'año_creacion': 2024,
                         'estado': 'Listo',
-                        'pattern_used': 'patricio_format_v2',
-                        'raw_content': f"{enunciado}\n{solucion}" if solucion else enunciado,
+                        'pattern_used': 'patricio_format_v4',
+                        'raw_content': raw_content,
                         'palabras_clave': self._extract_keywords(enunciado)
                     }
                     exercises.append(exercise)
         
         return exercises
     
-    def _extract_complete_exercises(self, subsection_content: str) -> List[Tuple[str, str]]:
-        """Extrae ejercicios completos con sus soluciones - método simplificado"""
+    def _extract_complete_exercises_v4(self, subsection_content: str) -> List[Tuple[str, str, str]]:
+        """
+        VERSIÓN 4: Extrae ejercicios completos con enumerate balanceado
+        CORRIGE: El bug del regex que cortaba el contenido enumerate
+        """
         exercises = []
         
-        # Buscar enumerate dentro de la subsección
-        enum_pattern = r'\\begin\{enumerate\}(.*?)\\end\{enumerate\}'
-        enum_match = re.search(enum_pattern, subsection_content, re.DOTALL)
+        # NUEVO: Buscar el bloque enumerate con conteo de niveles balanceado
+        enum_content = self._extract_balanced_enumerate(subsection_content)
         
-        if not enum_match:
+        if not enum_content:
             return exercises
         
-        enum_content = enum_match.group(1)
+        # Dividir por ejercicios completos preservando estructura interna
+        exercises_raw = self._split_into_complete_exercises_v4(enum_content)
         
-        # Estrategia simple pero efectiva:
-        # Dividir por \item, luego reconstruir ejercicios basándose en \ifanswers
-        
-        # Primero dividir por \item
-        parts = re.split(r'\\item\s+', enum_content)
-        
-        for part in parts[1:]:  # Saltar primer elemento vacío
-            if not part.strip():
-                continue
-            
-            # Cada part puede contener un ejercicio completo con solución
-            full_item = f"\\item {part}"
-            
-            # Separar enunciado y solución usando el método mejorado
-            enunciado, solucion = self._separate_statement_solution_v2(full_item)
-            
-            if enunciado.strip():
-                exercises.append((enunciado, solucion))
+        for exercise_raw in exercises_raw:
+            if exercise_raw.strip():
+                enunciado, solucion = self._separate_statement_solution_v4(exercise_raw)
+                if enunciado.strip():
+                    exercises.append((enunciado, solucion, exercise_raw))
         
         return exercises
     
-    def _separate_statement_solution_v2(self, item_content: str) -> Tuple[str, str]:
-        """Versión mejorada para separar enunciado de solución"""
+    def _extract_balanced_enumerate(self, content: str) -> str:
+        """
+        NUEVA FUNCIÓN CLAVE: Extrae el contenido enumerate balanceando niveles
+        SOLUCIONA: El problema del regex que tomaba el primer \end{enumerate}
+        """
+        
+        # Encontrar el inicio del enumerate principal
+        start_match = re.search(r'\\begin\{enumerate\}', content)
+        if not start_match:
+            return ""
+        
+        start_pos = start_match.end()
+        
+        # Contar niveles de anidamiento para encontrar el \end{enumerate} correcto
+        level = 1
+        pos = start_pos
+        
+        while pos < len(content) and level > 0:
+            # Buscar próximo \begin{enumerate} o \end{enumerate}
+            next_begin = content.find('\\begin{enumerate}', pos)
+            next_end = content.find('\\end{enumerate}', pos)
+            
+            # Determinar cuál viene primero
+            if next_begin == -1:
+                next_begin = len(content)
+            if next_end == -1:
+                next_end = len(content)
+            
+            if next_begin < next_end:
+                # Encontró otro \begin{enumerate}
+                level += 1
+                pos = next_begin + len('\\begin{enumerate}')
+            else:
+                # Encontró \end{enumerate}
+                level -= 1
+                pos = next_end + len('\\end{enumerate}')
+                
+                if level == 0:
+                    # Encontramos el \end{enumerate} que cierra el nivel principal
+                    end_pos = next_end
+                    enum_content = content[start_pos:end_pos]
+                    return enum_content
+        
+        return ""
+    
+    def _split_into_complete_exercises_v4(self, enum_content: str) -> List[str]:
+        """
+        VERSIÓN 4: Divide el contenido del enumerate en ejercicios completos
+        MEJORADA: Mejor detección de niveles de anidamiento
+        """
+        exercises = []
+        
+        # Encontrar posiciones de items principales (no anidados)
+        item_positions = []
+        
+        # Encontrar todas las posiciones de \item
+        for match in re.finditer(r'\\item\s+', enum_content):
+            pos = match.start()
+            
+            # Verificar si este \item está dentro de un enumerate/itemize anidado
+            content_before = enum_content[:pos]
+            
+            # Contar diferentes tipos de entornos abiertos
+            open_enums = len(re.findall(r'\\begin\{enumerate\}', content_before))
+            closed_enums = len(re.findall(r'\\end\{enumerate\}', content_before))
+            open_items = len(re.findall(r'\\begin\{itemize\}', content_before))
+            closed_items = len(re.findall(r'\\end\{itemize\}', content_before))
+            
+            # Nivel de anidamiento total
+            nesting_level = (open_enums - closed_enums) + (open_items - closed_items)
+            
+            # Si está en nivel 0, es un item principal
+            if nesting_level == 0:
+                item_positions.append(pos)
+        
+        # Dividir el contenido basándose en las posiciones de items principales
+        for i, start_pos in enumerate(item_positions):
+            if i < len(item_positions) - 1:
+                end_pos = item_positions[i + 1]
+                exercise = enum_content[start_pos:end_pos]
+            else:
+                exercise = enum_content[start_pos:]
+            
+            exercises.append(exercise.strip())
+        
+        return exercises
+    
+    def _separate_statement_solution_v4(self, exercise_content: str) -> Tuple[str, str]:
+        """
+        VERSIÓN 4: Separa enunciado de solución preservando estructura
+        """
+        # Limpiar el \item inicial
+        content = re.sub(r'^\\item\s+', '', exercise_content).strip()
         
         # Verificar si tiene solución
-        if '\\ifanswers' not in item_content:
-            # Limpiar el \item del inicio
-            clean_content = re.sub(r'^\\item\s+', '', item_content).strip()
-            return clean_content, ""
+        if '\\ifanswers' not in content:
+            return content, ""
         
-        # Encontrar la posición donde empieza \ifanswers
-        ifanswers_match = re.search(r'\\ifanswers', item_content)
+        # Encontrar donde empieza la solución
+        ifanswers_match = re.search(r'\\ifanswers', content)
         if not ifanswers_match:
-            clean_content = re.sub(r'^\\item\s+', '', item_content).strip()
-            return clean_content, ""
+            return content, ""
         
-        # Dividir en enunciado (antes de \ifanswers) y bloque de solución
+        # Dividir en enunciado y bloque de solución
         split_pos = ifanswers_match.start()
-        enunciado_part = item_content[:split_pos].strip()
-        solution_block = item_content[split_pos:].strip()
+        enunciado = content[:split_pos].strip()
+        solution_block = content[split_pos:].strip()
         
-        # Limpiar el \item del enunciado
-        enunciado = re.sub(r'^\\item\s+', '', enunciado_part).strip()
+        # Extraer solución del bloque ifanswers
+        solucion = self._extract_solution_from_ifanswers_v4(solution_block)
         
-        # Extraer solución del bloque
-        solucion = ""
-        
-        # Patrón mejorado para extraer contenido de \ifanswers
-        solution_patterns = [
-            # Capturar todo el contenido entre las llaves principales de \ifanswers
-            r'\\ifanswers\s*\{(.*)\}\s*\\fi',
-            # Backup: capturar desde \ifanswers hasta \fi
-            r'\\ifanswers(.*?)\\fi'
+        return enunciado, solucion
+    
+    def _extract_solution_from_ifanswers_v4(self, solution_block: str) -> str:
+        """
+        VERSIÓN 4: Extrae la solución del bloque \ifanswers de manera más robusta
+        """
+        # Patrones mejorados para extraer solución
+        patterns = [
+            # Patrón más específico para el formato de Patricio
+            r'\\ifanswers\s*\{\s*\\color\{red\}\s*\\textbf\{Solución:\}\s*(.*?)\s*\}\s*\\fi',
+            # Patrón sin "Solución:" explícito
+            r'\\ifanswers\s*\{\s*\\color\{red\}\\textbf\{Solución:\}\s*(.*?)\s*\}\s*\\fi',
+            r'\\ifanswers\s*\{\s*\\color\{red\}\s*(.*?)\s*\}\s*\\fi',
+            # Patrón más general
+            r'\\ifanswers\s*\{(.*?)\}\s*\\fi'
         ]
         
-        for pattern in solution_patterns:
+        for pattern in patterns:
             match = re.search(pattern, solution_block, re.DOTALL)
             if match:
                 raw_solution = match.group(1)
                 
-                # Limpiar comandos LaTeX de formato
-                solucion = re.sub(r'\\color\{red\}', '', raw_solution)
-                solucion = re.sub(r'\\textbf\{Solución:\}', '', solucion)
-                solucion = re.sub(r'\\textbf\{[^}]*\}', '', solucion)
-                solucion = re.sub(r'\\textit\{[^}]*\}', '', solucion)
-                solucion = solucion.strip()
+                # Limpiar comandos LaTeX básicos pero preservar contenido matemático
+                solution = re.sub(r'\\textbf\{[^}]*\}', '', raw_solution)
+                solution = re.sub(r'\\textit\{([^}]*)\}', r'\1', solution)
+                solution = re.sub(r'\\color\{[^}]*\}', '', solution)
+                solution = solution.strip()
                 
-                if solucion:
-                    break
+                if solution:
+                    return solution
         
-        return enunciado, solucion
-    
-    def _extract_main_items_only(self, enum_content: str) -> List[str]:
-        """Extrae solo los items principales, manteniendo subitems como parte del ejercicio"""
-        
-        # Nueva estrategia: buscar patrones de ejercicios completos
-        # Un ejercicio completo termina con \ifanswers o con el siguiente ejercicio
-        
-        # Patrón: buscar \item seguido de contenido hasta \ifanswers...\fi o próximo \item principal
-        exercise_pattern = r'\\item\s+(.*?)(?=\\item\s+(?![^{]*})|$)'
-        potential_exercises = re.findall(exercise_pattern, enum_content, re.DOTALL)
-        
-        real_exercises = []
-        
-        for potential in potential_exercises:
-            potential = potential.strip()
-            if not potential:
-                continue
-                
-            # Un ejercicio real debe tener contenido sustancial
-            # Y típicamente tiene \ifanswers o es lo suficientemente largo
-            has_solution = '\\ifanswers' in potential
-            is_substantial = len(potential.replace(' ', '').replace('\n', '')) > 30
-            
-            # Si tiene solución, definitivamente es un ejercicio
-            # Si no tiene solución pero es sustancial, también lo consideramos
-            if has_solution or is_substantial:
-                real_exercises.append(potential)
-        
-        return real_exercises
+        return ""
     
     def _map_subsection_to_unit(self, subsection_title: str) -> str:
         """Mapea títulos de subsección a unidades temáticas"""
@@ -488,6 +366,115 @@ class LaTeXExerciseParser:
         
         return 'Por determinar'
     
+    def _clean_exercise_content(self, content: str) -> str:
+        """Limpia el contenido del ejercicio preservando estructura matemática"""
+        if not content:
+            return ""
+        
+        # Limpiar comandos básicos pero mantener matemáticas y estructura
+        cleaned = re.sub(r'\\textbf\{([^}]+)\}', r'\1', content)  # Bold
+        cleaned = re.sub(r'\\textit\{([^}]+)\}', r'\1', cleaned)   # Italic
+        cleaned = re.sub(r'\\emph\{([^}]+)\}', r'\1', cleaned)     # Emphasis
+        
+        # Mantener estructura de listas pero limpiarlas un poco
+        cleaned = re.sub(r'\n\s*\n\s*\n+', r'\n\n', cleaned)  # Máximo 2 líneas vacías
+        cleaned = re.sub(r'^\s+', '', cleaned, flags=re.MULTILINE)  # Espacios al inicio de línea
+        
+        return cleaned.strip()
+    
+    def _infer_difficulty(self, content: str) -> str:
+        """Infiere dificultad basado en palabras clave y complejidad"""
+        content_lower = content.lower()
+        
+        # Palabras clave para diferentes niveles
+        basic_keywords = ['calcule', 'determine', 'grafique', 'simple', 'encuentre']
+        advanced_keywords = ['demuestre', 'derive', 'analice', 'complejo', 'integral', 'ecuación diferencial']
+        
+        basic_count = sum(1 for word in basic_keywords if word in content_lower)
+        advanced_count = sum(1 for word in advanced_keywords if word in content_lower)
+        
+        # Complejidad por longitud y símbolos matemáticos
+        math_symbols = len(re.findall(r'\\[a-zA-Z]+|[\$\{\}]', content))
+        has_enumerate = '\\begin{enumerate}' in content
+        
+        if advanced_count > basic_count or math_symbols > 15:
+            return 'Avanzado'
+        elif basic_count > 0 or math_symbols > 8 or has_enumerate:
+            return 'Intermedio'
+        else:
+            return 'Básico'
+    
+    def _infer_modality(self, content: str) -> str:
+        """Infiere modalidad basado en contenido"""
+        content_lower = content.lower()
+        
+        computational_keywords = ['python', 'código', 'implemente', 'programe', 'compute']
+        
+        if any(word in content_lower for word in computational_keywords):
+            return 'Computacional'
+        elif 'grafique' in content_lower or 'graph' in content_lower:
+            return 'Mixto'
+        else:
+            return 'Teórico'
+    
+    def _infer_time(self, content: str) -> int:
+        """Infiere tiempo estimado basado en complejidad"""
+        # Factores de complejidad
+        word_count = len(content.split())
+        math_complexity = len(re.findall(r'\\[a-zA-Z]+', content))
+        has_parts = 'enumerate' in content or len(re.findall(r'\([a-z]\)', content)) > 1
+        has_multiple_questions = content.count('?') > 1
+        
+        base_time = 15
+        if word_count > 100:
+            base_time += 15
+        if math_complexity > 5:
+            base_time += 10
+        if has_parts:
+            base_time += 20
+        if has_multiple_questions:
+            base_time += 10
+            
+        return min(base_time, 60)  # Máximo 60 minutos
+    
+    def _extract_keywords(self, content: str) -> List[str]:
+        """Extrae palabras clave relevantes"""
+        content_lower = content.lower()
+        
+        keyword_patterns = [
+            'convolución', 'fourier', 'laplace', 'transformada', 'impulso',
+            'lineal', 'sistema', 'señal', 'función', 'complejo', 'muestreo',
+            'discreto', 'continuo', 'estabilidad', 'causal', 'dft', 'fft'
+        ]
+        
+        found_keywords = [kw for kw in keyword_patterns if kw in content_lower]
+        return found_keywords[:5]  # Máximo 5 palabras clave
+    
+    def _extract_metadata(self, content: str) -> Dict:
+        """Extrae metadatos del contenido del ejercicio"""
+        metadata = {}
+        
+        for meta_type, patterns in self.metadata_patterns.items():
+            for pattern in patterns:
+                match = re.search(pattern, content, re.IGNORECASE | re.DOTALL)
+                if match:
+                    value = match.group(1).strip()
+                    
+                    # Procesar según el tipo
+                    if meta_type == 'difficulty':
+                        metadata['nivel_dificultad'] = self._normalize_difficulty(value)
+                    elif meta_type == 'unit':
+                        metadata['unidad_tematica'] = self._normalize_unit(value)
+                    elif meta_type == 'time':
+                        try:
+                            metadata['tiempo_estimado'] = int(value)
+                        except ValueError:
+                            pass
+                    
+                    break  # Usar solo el primer match
+        
+        return metadata
+    
     def _normalize_difficulty(self, difficulty: str) -> str:
         """Normaliza el nivel de dificultad"""
         difficulty = difficulty.lower().strip()
@@ -511,164 +498,6 @@ class LaTeXExerciseParser:
         }
         
         return mapping.get(difficulty, 'Intermedio')
-    
-    def _extract_items_from_enumerate(self, enum_content: str) -> List[str]:
-        """Extrae items individuales de un enumerate, preservando subestructuras"""
-        items = []
-        
-        # Dividir por \item pero manteniendo cuidado con enumerate anidados
-        parts = re.split(r'(?<!\\)\\item\s+', enum_content)
-        
-        for part in parts[1:]:  # Saltar el primer elemento vacío
-            if part.strip():
-                # Verificar si este item tiene enumerate/itemize anidados
-                item_content = part.strip()
-                
-                # Contar niveles de anidamiento para decidir si es un ejercicio completo
-                nested_enums = len(re.findall(r'\\begin\{enumerate\}|\\begin\{itemize\}', item_content))
-                nested_items = len(re.findall(r'\\item', item_content))
-                
-                # Si tiene estructuras anidadas significativas, es probablemente un ejercicio completo
-                # Si solo tiene 1-2 items anidados, mantenemos todo junto
-                if nested_enums > 0 or nested_items <= 3:
-                    items.append(item_content)
-                else:
-                    # Si tiene muchos items anidados sin estructura, podría necesitar división
-                    items.append(item_content)
-        
-        return items
-    
-    def _separate_statement_solution(self, item_content: str) -> Tuple[str, str]:
-        """Separa enunciado de solución en formato ifanswers, preservando estructura"""
-        
-        # Debug: verificar si hay ifanswers
-        if '\\ifanswers' not in item_content:
-            return item_content.strip(), ""
-        
-        # Patrones más robustos y específicos para el formato de Patricio
-        solution_patterns = [
-            # Patrón más específico para el formato exacto de Patricio
-            r'\\ifanswers\s*\{\s*\\color\{red\}\s*\\textbf\{Solución:\}\s*(.*?)\s*\}\s*\\fi',
-            # Sin espacios extras
-            r'\\ifanswers\s*\{\\color\{red\}\\textbf\{Solución:\}(.*?)\}\s*\\fi',
-            # Variación con \textit
-            r'\\ifanswers\s*\{\\color\{red\}\s*\\textbf\{Solución:\}\s*\\textit\{(.*?)\}\s*\}\s*\\fi',
-            # Patrón más general - capturar todo después de {
-            r'\\ifanswers\s*\{\\color\{red\}[^}]*\}(.*?)\}\s*\\fi',
-            # Patrón súper general - solo el contenido entre las llaves principales
-            r'\\ifanswers\s*\{(.*?)\}\s*\\fi'
-        ]
-        
-        solution = ""
-        statement = item_content
-        
-        # Probar cada patrón
-        for i, pattern in enumerate(solution_patterns):
-            matches = re.findall(pattern, item_content, re.DOTALL | re.IGNORECASE)
-            if matches:
-                # Tomar la coincidencia más larga (más probable que sea correcta)
-                solution = max(matches, key=len).strip()
-                
-                # Limpiar comandos LaTeX básicos de la solución
-                solution = re.sub(r'\\textbf\{[^}]*\}', '', solution)
-                solution = re.sub(r'\\textit\{[^}]*\}', '', solution)
-                solution = re.sub(r'\\color\{[^}]*\}', '', solution)
-                solution = solution.strip()
-                
-                if solution:  # Si encontramos algo válido
-                    break
-        
-        # Remover toda la sección ifanswers del enunciado
-        if solution:
-            # Usar un patrón más simple para remover
-            ifanswers_removal_pattern = r'\\ifanswers.*?\\fi'
-            statement = re.sub(ifanswers_removal_pattern, '', item_content, flags=re.DOTALL).strip()
-        
-        # Limpiar el enunciado pero preservar estructura de subpreguntas
-        statement = self._clean_statement_preserve_structure(statement)
-        
-        return statement, solution
-    
-    def _clean_statement_preserve_structure(self, statement: str) -> str:
-        """Limpia el enunciado pero preserva la estructura de subpreguntas"""
-        # No remover enumerate/itemize anidados - son parte del ejercicio
-        # Solo limpiar comandos de formato básicos
-        
-        # Limpiar comandos básicos pero mantener estructura matemática y listas
-        cleaned = re.sub(r'\\textbf\{([^}]+)\}', r'\1', statement)  # Bold
-        cleaned = re.sub(r'\\textit\{([^}]+)\}', r'\1', cleaned)   # Italic
-        cleaned = re.sub(r'\\emph\{([^}]+)\}', r'\1', cleaned)     # Emphasis
-        
-        # Mantener matemáticas, listas, y estructura
-        # Solo limpiar espacios excesivos
-        cleaned = re.sub(r'\n\s*\n\s*\n', r'\n\n', cleaned)  # Máximo 2 líneas vacías
-        cleaned = cleaned.strip()
-        
-        return cleaned
-    
-    def _infer_difficulty(self, content: str) -> str:
-        """Infiere dificultad basado en palabras clave y complejidad"""
-        content_lower = content.lower()
-        
-        # Palabras clave para diferentes niveles
-        basic_keywords = ['calcule', 'determine', 'grafique', 'simple']
-        advanced_keywords = ['demuestre', 'derive', 'analice', 'complejo', 'integral', 'ecuación diferencial']
-        
-        basic_count = sum(1 for word in basic_keywords if word in content_lower)
-        advanced_count = sum(1 for word in advanced_keywords if word in content_lower)
-        
-        # Complejidad por longitud y símbolos matemáticos
-        math_symbols = len(re.findall(r'\\[a-zA-Z]+|[\$\{\}]', content))
-        
-        if advanced_count > basic_count or math_symbols > 10:
-            return 'Avanzado'
-        elif basic_count > 0 or math_symbols > 5:
-            return 'Intermedio'
-        else:
-            return 'Básico'
-    
-    def _infer_modality(self, content: str) -> str:
-        """Infiere modalidad basado en contenido"""
-        content_lower = content.lower()
-        
-        computational_keywords = ['python', 'código', 'implemente', 'programe', 'compute']
-        
-        if any(word in content_lower for word in computational_keywords):
-            return 'Computacional'
-        elif 'grafique' in content_lower:
-            return 'Mixto'
-        else:
-            return 'Teórico'
-    
-    def _infer_time(self, content: str) -> int:
-        """Infiere tiempo estimado basado en complejidad"""
-        # Factores de complejidad
-        word_count = len(content.split())
-        math_complexity = len(re.findall(r'\\[a-zA-Z]+', content))
-        has_parts = 'enumerate' in content or len(re.findall(r'\([a-z]\)', content)) > 1
-        
-        base_time = 15
-        if word_count > 100:
-            base_time += 10
-        if math_complexity > 5:
-            base_time += 10
-        if has_parts:
-            base_time += 15
-            
-        return min(base_time, 60)  # Máximo 60 minutos
-    
-    def _extract_keywords(self, content: str) -> List[str]:
-        """Extrae palabras clave relevantes"""
-        content_lower = content.lower()
-        
-        keyword_patterns = [
-            'convolución', 'fourier', 'laplace', 'transformada', 'impulso',
-            'lineal', 'sistema', 'señal', 'función', 'complejo', 'muestreo',
-            'discreto', 'continuo', 'estabilidad', 'causal', 'dft', 'fft'
-        ]
-        
-        found_keywords = [kw for kw in keyword_patterns if kw in content_lower]
-        return found_keywords[:5]  # Máximo 5 palabras clave
     
     def _normalize_unit(self, unit: str) -> str:
         """Normaliza la unidad temática"""
@@ -699,36 +528,44 @@ class LaTeXExerciseParser:
                 return value
         
         return 'Por determinar'
-        """Normaliza la unidad temática"""
-        unit = unit.lower().strip()
+    
+    def _fallback_extraction(self, content: str, source: str) -> List[Dict]:
+        """Extracción de respaldo cuando no se encuentran patrones específicos"""
+        exercises = []
         
-        # Mapeo de palabras clave a unidades del programa
-        unit_mapping = {
-            'introduccion': 'Introducción',
-            'introducción': 'Introducción',
-            'introduction': 'Introducción',
-            'sistemas continuos': 'Sistemas Continuos',
-            'continuo': 'Sistemas Continuos',
-            'convolucion': 'Sistemas Continuos',
-            'convolución': 'Sistemas Continuos',
-            'fourier': 'Transformada de Fourier',
-            'serie': 'Transformada de Fourier',
-            'laplace': 'Transformada de Laplace',
-            'discreto': 'Sistemas Discretos',
-            'muestreo': 'Sistemas Discretos',
-            'dft': 'Transformada de Fourier Discreta',
-            'fft': 'Transformada de Fourier Discreta',
-            'transformada z': 'Transformada Z',
-            'z transform': 'Transformada Z'
-        }
+        # Dividir por párrafos significativos
+        paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
         
-        for key, value in unit_mapping.items():
-            if key in unit:
-                return value
+        # Filtrar párrafos que parezcan ejercicios
+        exercise_paragraphs = []
+        for para in paragraphs:
+            if (len(para) > 50 and  # Longitud mínima
+                ('?' in para or 'calcul' in para.lower() or 'determin' in para.lower() or
+                 'encuentr' in para.lower() or 'demuestre' in para.lower())):
+                exercise_paragraphs.append(para)
         
-        return 'Por determinar'
+        # Crear ejercicios
+        for i, para in enumerate(exercise_paragraphs, 1):
+            exercise = {
+                'titulo': f"Ejercicio {i}",
+                'enunciado': self._clean_exercise_content(para),
+                'solucion_completa': "",
+                'unidad_tematica': 'Por determinar',
+                'nivel_dificultad': 'Intermedio',
+                'modalidad': 'Teórico',
+                'tiempo_estimado': 20,
+                'fuente': source,
+                'año_creacion': 2024,
+                'estado': 'En revisión',
+                'pattern_used': 'fallback_paragraphs',
+                'raw_content': para,
+                'palabras_clave': []
+            }
+            exercises.append(exercise)
+        
+        return exercises
 
-# Funciones de utilidad para Streamlit
+# Funciones de utilidad para Streamlit (mantener las existentes)
 def create_parser_interface():
     """Crea la interfaz de Streamlit para el parser"""
     st.subheader("🔄 Importador de Ejercicios LaTeX")
