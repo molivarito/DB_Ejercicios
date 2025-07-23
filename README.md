@@ -1,429 +1,260 @@
-# Sistema de Gestión de Ejercicios - Señales y Sistemas
+# DB_Ejercicios - Sistema de Gestión de Ejercicios
 
-## 📋 Descripción
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
+[![Conda](https://img.shields.io/badge/Conda-Ready-green.svg)](https://conda.io)
 
-Sistema desarrollado para el curso IEE2103 - Señales y Sistemas de la Pontificia Universidad Católica de Chile. Permite gestionar una base de datos de ejercicios y generar pruebas automáticamente.
+## 🎓 Descripción del Proyecto
 
-## 🚀 Instalación
+Sistema desarrollado para el curso **IEE2103 - Señales y Sistemas** de la Pontificia Universidad Católica de Chile. Permite gestionar una base de datos completa de ejercicios y generar automáticamente pruebas, tareas y guías de ejercicios con formato profesional.
 
-### Requisitos Previos
+**Desarrollado por:** Patricio de la Cuadra  
+**Institución:** Departamento de Ingeniería Eléctrica - PUC  
+**Curso:** IEE2103 - Señales y Sistemas  
 
-1. **Python 3.8 o superior**
-2. **LaTeX** (para generación de PDFs)
-   - En Windows: MiKTeX o TeX Live
-   - En macOS: MacTeX
-   - En Linux: `sudo apt-get install texlive-full`
+---
 
-## 🚀 Instalación
+## ✅ Estado Actual del Proyecto
 
-### Requisitos Previos
+### **PROTOTIPO FUNCIONAL COMPLETO** 🚀
 
-1. **Anaconda o Miniconda** (recomendado)
-   - Anaconda: https://www.anaconda.com/products/individual
-   - Miniconda: https://docs.conda.io/en/latest/miniconda.html
-   
-2. **Alternativamente: Python 3.8 o superior** (si no usas conda)
+El sistema está **operativo** y listo para uso básico. Incluye todas las funcionalidades core implementadas.
 
-3. **LaTeX** (para generación de PDFs)
-   - En Windows: MiKTeX o TeX Live
-   - En macOS: MacTeX (`brew install --cask mactex`)
-   - En Linux: `sudo apt-get install texlive-full`
+**Última actualización:** Julio 2025  
+**Versión:** 1.0.0 - Prototipo  
 
-### Instalación Rápida con Conda
+---
 
-#### Opción 1: Script Automático (Recomendado)
+## 🏗️ Lo que YA está implementado
 
-**En macOS/Linux:**
+### ✅ **Funcionalidades Core**
+- [x] **Base de datos SQLite** con estructura completa (32+ campos de metadata)
+- [x] **Interfaz web Streamlit** con 6 páginas principales
+- [x] **CRUD completo** de ejercicios (Create, Read, Update, Delete)
+- [x] **Generador automático de pruebas** con filtros inteligentes
+- [x] **Exportación a PDF** con templates LaTeX profesionales
+- [x] **Sistema de búsqueda** con filtros múltiples
+- [x] **Dashboard con estadísticas** de la base de datos
+- [x] **Configuración automática** con conda
+
+### ✅ **Componentes Técnicos**
+- [x] **database/db_manager.py**: Gestor completo de base de datos
+- [x] **app.py**: Aplicación Streamlit principal (6 páginas)
+- [x] **generators/pdf_generator.py**: Generación de PDFs con LaTeX
+- [x] **environment.yml**: Entorno conda listo para producción
+- [x] **Scripts de setup**: Instalación automatizada (macOS)
+
+### ✅ **Estructura de Datos**
+- [x] **7 Unidades temáticas** del programa (Introducción → Transformada Z)
+- [x] **4 Niveles de dificultad** (Básico, Intermedio, Avanzado, Desafío)
+- [x] **3 Modalidades** (Teórico, Computacional, Mixto)
+- [x] **Tracking completo** (fechas de uso, rendimiento, comentarios)
+- [x] **Metadatos pedagógicos** (objetivos, competencias ABET, habilidades)
+
+---
+
+## 🔧 Stack Técnico
+
+### **Backend**
+- **Python 3.11** (base)
+- **SQLite** (base de datos)
+- **Pandas** (manipulación de datos)
+
+### **Frontend**
+- **Streamlit** (interfaz web)
+- **Plotly/Matplotlib** (visualizaciones)
+
+### **Generación de Documentos**
+- **PyLaTeX** (generación LaTeX programática)
+- **LaTeX** (compilación a PDF)
+- **Templates PUC** (branding institucional)
+
+### **Entorno de Desarrollo**
+- **Conda** (gestión de entornos)
+- **macOS** (desarrollo)
+- **VSCode** (IDE)
+- **Git/GitHub** (control de versiones)
+
+---
+
+## 🚀 Instalación y Uso
+
+### **Instalación Rápida (macOS)**
 ```bash
-# Dar permisos de ejecución
+# Clonar repositorio
+git clone https://github.com/molivarito/DB_Ejercicios.git
+cd DB_Ejercicios
+
+# Configuración automática
 chmod +x setup_conda.sh
-
-# Ejecutar script
 ./setup_conda.sh
-```
 
-**En Windows:**
-```cmd
-# Ejecutar desde Command Prompt o PowerShell
-setup_conda.bat
-```
-
-#### Opción 2: Manual con Conda
-
-```bash
-# Crear entorno desde archivo
+# O manual
 conda env create -f environment.yml
-
-# Activar entorno
 conda activate ejercicios-sys
-
-# Verificar instalación
-conda list
-
-# Ejecutar aplicación
 streamlit run app.py
 ```
 
-## 📁 Estructura del Proyecto
+### **Uso del Sistema**
+1. **Agregar Ejercicios**: Formulario completo con todos los metadatos
+2. **Buscar/Filtrar**: Por unidad, dificultad, modalidad, texto libre
+3. **Generar Pruebas**: Selección automática o manual con vista previa
+4. **Exportar PDFs**: Formato profesional PUC con/sin soluciones
+5. **Ver Estadísticas**: Dashboard con métricas de uso
 
-```
-ejercicios_sys/
-├── app.py                 # Aplicación principal Streamlit
-├── database/
-│   ├── db_manager.py     # Gestor de base de datos
-│   └── ejercicios.db     # Base de datos SQLite (se crea automáticamente)
-├── generators/
-│   └── pdf_generator.py  # Generador de PDFs
-├── output/               # Archivos generados
-├── templates/            # Templates LaTeX
-└── README.md            # Este archivo
-```
+---
 
-## 🎯 Uso del Sistema
+## 📊 Funcionalidades Principales
 
-### Ejecutar la Aplicación
+### 🏠 **Dashboard**
+- Métricas generales de la base de datos
+- Distribución por unidades temáticas
+- Ejercicios agregados recientemente
+- Estadísticas de uso
 
-```bash
-streamlit run app.py
-```
+### ➕ **Agregar Ejercicio**
+- Formulario completo con validación
+- 32+ campos de metadata
+- Soporte para LaTeX math
+- Categorización automática
 
-La aplicación se abrirá en tu navegador en `http://localhost:8501`
+### 🔍 **Buscar Ejercicios**
+- Filtros por unidad, dificultad, modalidad
+- Búsqueda por texto en título/contenido
+- Vista de detalles expandible
+- Opciones de edición
 
-### Funcionalidades Principales
-
-#### 1. Dashboard 🏠
-- Vista general de la base de datos
-- Estadísticas de ejercicios
-- Accesos rápidos
-
-#### 2. Agregar Ejercicio ➕
-- Formulario completo para nuevos ejercicios
-- Campos para todos los metadatos definidos
-- Validación de datos
-
-#### 3. Buscar Ejercicios 🔍
-- Filtros múltiples por unidad, dificultad, modalidad
-- Búsqueda por texto
-- Vista de detalles de ejercicios
-
-#### 4. Generar Prueba 🎯
-- Selección automática o manual de ejercicios
-- Configuración de parámetros de la prueba
+### 🎯 **Generar Prueba**
+- Criterios de selección inteligentes
+- Distribución automática de dificultad
 - Vista previa en tiempo real
-- Exportación a PDF y LaTeX
+- Configuración de tiempo y formato
 
-#### 5. Estadísticas 📊
+### 📄 **Exportación**
+- PDFs con formato institucional PUC
+- Versiones con y sin soluciones
+- Templates LaTeX personalizables
+- Branding automático
+
+### 📊 **Estadísticas**
 - Distribuciones por categorías
 - Ejercicios más utilizados
-- Métricas de uso
+- Métricas de rendimiento
+- Visualizaciones interactivas
 
-#### 6. Configuración ⚙️
-- Configuración del sistema
-- Backup y restauración
-- Personalización de templates
+---
 
-## 🗄️ Base de Datos
-
-### Campos Principales
-
-- **Identificación**: ID, título, fuente, año
-- **Clasificación**: unidad temática, subtemas, dificultad
-- **Contenido**: enunciado, solución, código Python
-- **Pedagógico**: tipo de actividad, modalidad, objetivos
-- **Seguimiento**: fechas de uso, rendimiento
-
-### Unidades Temáticas
-
-1. Introducción
-2. Sistemas Continuos
-3. Transformada de Fourier
-4. Transformada de Laplace
-5. Sistemas Discretos
-6. Transformada de Fourier Discreta
-7. Transformada Z
-
-## 📄 Generación de Documentos
-
-### Formatos Disponibles
-
-- **PDF**: Pruebas y guías listas para imprimir
-- **LaTeX**: Código fuente editable
-- **Soluciones**: PDF separado con soluciones
-
-### Personalización
-
-Los documentos incluyen:
-- Logo y branding de la PUC
-- Formato estándar de pruebas
-- Numeración automática
-- Espacios para respuestas
-
-## 🔧 Desarrollo y Extensión
-
-### Agregar Nuevas Funcionalidades
-
-1. **Importadores**: Agregar parsers para otros formatos
-2. **Exportadores**: Nuevos formatos de salida
-3. **Filtros**: Criterios adicionales de búsqueda
-4. **Analytics**: Métricas avanzadas de uso
-
-### Estructura de Código
-
-```python
-# Ejemplo de extensión - Nuevo filtro
-def filtrar_por_tiempo(ejercicios, tiempo_min, tiempo_max):
-    return [e for e in ejercicios 
-            if tiempo_min <= e.get('tiempo_estimado', 0) <= tiempo_max]
-```
-
-## 📊 Ejemplos de Uso
-
-### Crear una Prueba Automática
-
-1. Ir a "Generar Prueba"
-2. Seleccionar unidades: "Sistemas Continuos", "Transformada de Fourier"
-3. Configurar: 4 ejercicios, 90 minutos, distribución balanceada
-4. Generar y descargar PDF
-
-### Agregar Ejercicio Nuevo
-
-1. Ir a "Agregar Ejercicio"
-2. Completar información básica y contenido
-3. Asignar metadatos pedagógicos
-4. Guardar en la base de datos
-
-### Buscar Ejercicios Específicos
-
-1. Ir a "Buscar Ejercicios"
-2. Aplicar filtros: Unidad = "DFT", Dificultad = "Intermedio"
-3. Revisar resultados y seleccionar
-
-## 🔄 Flujo de Trabajo Recomendado
-
-### Para Preparar una Prueba
-
-1. **Planificación**: Definir objetivos y contenidos
-2. **Selección**: Usar filtros para encontrar ejercicios apropiados
-3. **Generación**: Crear prueba con vista previa
-4. **Revisión**: Verificar contenido y formato
-5. **Exportación**: Generar PDF final
-6. **Registro**: Marcar ejercicios como usados
-
-### Para Gestión Semestral
-
-1. **Inicio**: Importar ejercicios de semestres anteriores
-2. **Desarrollo**: Agregar nuevos ejercicios durante el semestre
-3. **Uso**: Generar pruebas y materiales según calendario
-4. **Análisis**: Revisar estadísticas de uso y efectividad
-5. **Backup**: Crear respaldos regulares
-
-## 🛠️ Troubleshooting
-
-### Problemas Comunes
-
-#### LaTeX no encontrado
-```bash
-# Verificar instalación
-pdflatex --version
-
-# En caso de error, reinstalar LaTeX
-```
-
-#### Error de base de datos
-- Verificar permisos de escritura en directorio `database/`
-- Eliminar `ejercicios.db` para reinicializar
-
-#### Problemas de renderizado
-- Actualizar navegador
-- Limpiar caché de Streamlit: `streamlit cache clear`
-
-#### Caracteres especiales en LaTeX
-- Usar `\textbackslash{}` para backslashes
-- Escapar caracteres especiales: `\# Sistema de Gestión de Ejercicios - Señales y Sistemas
-
-## 📋 Descripción
-
-Sistema desarrollado para el curso IEE2103 - Señales y Sistemas de la Pontificia Universidad Católica de Chile. Permite gestionar una base de datos de ejercicios y generar pruebas automáticamente.
-
-## 🚀 Instalación
-
-### Requisitos Previos
-
-1. **Python 3.8 o superior**
-2. **LaTeX** (para generación de PDFs)
-   - En Windows: MiKTeX o TeX Live
-   - En macOS: MacTeX
-   - En Linux: `sudo apt-get install texlive-full`
-
-### Instalación de Dependencias
-
-```bash
-# Crear entorno virtual (recomendado)
-python -m venv ejercicios_sys_env
-source ejercicios_sys_env/bin/activate  # En Windows: ejercicios_sys_env\Scripts\activate
-
-# Instalar dependencias
-pip install streamlit pandas sqlite3 pylatex reportlab
-pip install python-dateutil matplotlib seaborn plotly
-```
-
-## 📁 Estructura del Proyecto
+## 🗂️ Estructura del Proyecto
 
 ```
-ejercicios_sys/
-├── app.py                 # Aplicación principal Streamlit
+DB_Ejercicios/
+├── app.py                     # Aplicación Streamlit principal
+├── environment.yml            # Entorno conda
+├── requirements.txt           # Dependencias pip (backup)
+├── setup_conda.sh            # Script de instalación macOS
+├── .gitignore                # Archivos ignorados por Git
+├── README.md                 # Este archivo
 ├── database/
-│   ├── db_manager.py     # Gestor de base de datos
-│   └── ejercicios.db     # Base de datos SQLite (se crea automáticamente)
+│   ├── db_manager.py         # Gestor de base de datos
+│   └── ejercicios.db         # Base de datos SQLite (auto-generada)
 ├── generators/
-│   └── pdf_generator.py  # Generador de PDFs
-├── output/               # Archivos generados
-├── templates/            # Templates LaTeX
-└── README.md            # Este archivo
+│   └── pdf_generator.py      # Generación de PDFs
+├── output/                   # PDFs y documentos generados
+├── templates/                # Templates LaTeX
+├── static/
+│   └── images/              # Imágenes para ejercicios
+└── utils/                   # Utilidades auxiliares
 ```
 
-## 🎯 Uso del Sistema
+---
 
-### Ejecutar la Aplicación
+## 🚧 Próximos Pasos Identificados
 
-```bash
-streamlit run app.py
-```
+### **Prioridad Alta** 🔴
+1. **Importador de ejercicios existentes** desde archivos LaTeX/PDF
+2. **Templates PDF personalizados** según formato específico del profesor
+3. **Funcionalidades específicas** basadas en workflow real
 
-La aplicación se abrirá en tu navegador en `http://localhost:8501`
+### **Prioridad Media** 🟡
+4. **Sistema de versionado** de ejercicios
+5. **Exportador a múltiples formatos** (Word, Moodle XML)
+6. **Analytics avanzados** de rendimiento estudiantil
 
-### Funcionalidades Principales
+### **Prioridad Baja** 🟢
+7. **Integración con Canvas LMS**
+8. **Colaboración multi-usuario**
+9. **API REST** para integraciones
 
-#### 1. Dashboard 🏠
-- Vista general de la base de datos
-- Estadísticas de ejercicios
-- Accesos rápidos
+---
 
-#### 2. Agregar Ejercicio ➕
-- Formulario completo para nuevos ejercicios
-- Campos para todos los metadatos definidos
-- Validación de datos
+## 💡 Decisiones de Diseño Tomadas
 
-#### 3. Buscar Ejercicios 🔍
-- Filtros múltiples por unidad, dificultad, modalidad
-- Búsqueda por texto
-- Vista de detalles de ejercicios
+### **Tecnológicas**
+- ✅ **Conda sobre pip**: Mejor gestión de dependencias científicas
+- ✅ **SQLite sobre PostgreSQL**: Simplicidad y portabilidad
+- ✅ **Streamlit sobre Flask**: Rapidez de desarrollo y prototipado
+- ✅ **PyLaTeX sobre reportlab**: Control completo del formato LaTeX
 
-#### 4. Generar Prueba 🎯
-- Selección automática o manual de ejercicios
-- Configuración de parámetros de la prueba
-- Vista previa en tiempo real
-- Exportación a PDF y LaTeX
+### **Arquitecturales**
+- ✅ **No usar Notion**: Mantener simplicidad y control total
+- ✅ **Base de datos local**: No requiere servidor, fácil backup
+- ✅ **Interfaz web**: Accesible desde cualquier navegador
+- ✅ **Modular**: Componentes independientes y extensibles
 
-#### 5. Estadísticas 📊
-- Distribuciones por categorías
-- Ejercicios más utilizados
-- Métricas de uso
+### **Pedagógicas**
+- ✅ **32+ campos de metadata**: Clasificación pedagógica completa
+- ✅ **7 unidades temáticas**: Alineado con programa IEE2103
+- ✅ **Tracking de uso**: Para optimización basada en datos
+- ✅ **Formato PUC**: Branding y estándares institucionales
 
-#### 6. Configuración ⚙️
-- Configuración del sistema
-- Backup y restauración
-- Personalización de templates
+---
 
-## 🗄️ Base de Datos
+## 🐛 Issues Conocidos
 
-### Campos Principales
+- **LaTeX requerido**: Generación de PDFs requiere LaTeX instalado
+- **Ejercicios de ejemplo**: Solo 3 ejercicios demo (necesita población real)
+- **Templates básicos**: PDFs funcionales pero pueden mejorarse estéticamente
 
-- **Identificación**: ID, título, fuente, año
-- **Clasificación**: unidad temática, subtemas, dificultad
-- **Contenido**: enunciado, solución, código Python
-- **Pedagógico**: tipo de actividad, modalidad, objetivos
-- **Seguimiento**: fechas de uso, rendimiento
+---
 
-### Unidades Temáticas
+## 📞 Para Nuevo Chat con Claude
 
-1. Introducción
-2. Sistemas Continuos
-3. Transformada de Fourier
-4. Transformada de Laplace
-5. Sistemas Discretos
-6. Transformada de Fourier Discreta
-7. Transformada Z
+**Copiar y pegar esto:**
 
-## 📄 Generación de Documentos
+> Hola Claude! Estoy trabajando en **DB_Ejercicios** (repo: https://github.com/molivarito/DB_Ejercicios.git). 
+> 
+> Es un sistema de gestión de ejercicios para mi curso **IEE2103 - Señales y Sistemas** en la PUC. 
+> 
+> **Estado actual**: PROTOTIPO FUNCIONAL completo con Streamlit + SQLite + PyLaTeX.
+> 
+> Por favor revisa el README.md del repo para entender el contexto completo del proyecto.
+> 
+> **Hoy quiero trabajar en**: [ESPECIFICAR AQUÍ LA TAREA CONCRETA]
 
-### Formatos Disponibles
+---
 
-- **PDF**: Pruebas y guías listas para imprimir
-- **LaTeX**: Código fuente editable
-- **Soluciones**: PDF separado con soluciones
+## 🤝 Contribución y Desarrollo
 
-### Personalización
+### **Para Ayudantes/Colaboradores**
+1. Fork del repositorio
+2. Crear rama para nueva funcionalidad
+3. Desarrollar y testear
+4. Pull request con descripción detallada
 
-Los documentos incluyen:
-- Logo y branding de la PUC
-- Formato estándar de pruebas
-- Numeración automática
-- Espacios para respuestas
+### **Para Reportar Issues**
+- Usar GitHub Issues con template
+- Incluir pasos para reproducir
+- Adjuntar logs si es necesario
 
-## 🔧 Desarrollo y Extensión
-
-, `\%`, `\&`
-
-### Logs y Debugging
-
-```python
-# Activar logging detallado
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
-
-## 📈 Roadmap de Desarrollo
-
-### Fase 1 (Actual) - Prototipo Básico
-- ✅ Base de datos SQLite
-- ✅ Interfaz Streamlit básica
-- ✅ Generación de PDFs
-- ✅ CRUD de ejercicios
-
-### Fase 2 - Funcionalidades Avanzadas
-- 🔄 Importador de archivos LaTeX
-- 🔄 Exportador a múltiples formatos
-- 🔄 Sistema de versionado de ejercicios
-- 🔄 Colaboración multi-usuario
-
-### Fase 3 - Integración y Analytics
-- ⏳ Integración con Canvas LMS
-- ⏳ Analytics avanzados de rendimiento
-- ⏳ Recomendaciones automáticas
-- ⏳ API REST para integraciones
-
-### Fase 4 - Producción
-- ⏳ Despliegue en servidor
-- ⏳ Autenticación y autorización
-- ⏳ Backup automático
-- ⏳ Monitoreo y alertas
-
-## 🤝 Contribución
-
-### Reportar Bugs
-1. Usar el sistema de issues
-2. Incluir pasos para reproducir
-3. Adjuntar logs relevantes
-
-### Sugerir Mejoras
-1. Describir el caso de uso
-2. Proponer implementación
-3. Considerar impacto en usuarios existentes
-
-## 📞 Soporte
-
-**Contacto**: Patricio de la Cuadra - pcuadra@uc.cl
-**Institución**: Pontificia Universidad Católica de Chile
-**Departamento**: Ingeniería Eléctrica
+---
 
 ## 📜 Licencia
 
-Desarrollado para uso académico en la PUC. 
+Desarrollado para uso académico en la Pontificia Universidad Católica de Chile.  
 Ver términos específicos de uso institucional.
 
 ---
 
-**Versión**: 1.0.0 - Prototipo  
-**Última actualización**: Julio 2025  
-**Mantenedor**: Patricio de la Cuadra
+**Contacto**: Patricio de la Cuadra - pcuadra@uc.cl  
+**Departamento**: Ingeniería Eléctrica - PUC  
+**Última actualización**: Julio 2025
