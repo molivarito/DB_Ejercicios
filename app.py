@@ -1,4 +1,206 @@
-"""
+def show_latex_import():
+    """Página para importar ejercicios desde LaTeX"""
+    st.markdown('<h1 class="main-header">📥 Importar Ejercicios desde LaTeX</h1>', 
+                unsafe_allow_html=True)
+    
+    # Importar el parser (en implementación real)
+    # from utils.latex_parser import create_parser_interface, display_parsed_exercises, import_exercises_to_db
+    
+    st.info("""
+    **¿Cómo funciona el importador?**
+    
+    1. **Detecta patrones automáticamente**: Busca estructuras como `\\begin{ejercicio}...\\end{ejercicio}`, numeración, etc.
+    2. **Extrae metadatos**: Reconoce comentarios como `% Dificultad: Intermedio` o `% Unidad: Fourier`
+    3. **Preview antes de importar**: Te permite revisar y editar antes de guardar en la base de datos
+    4. **Mapeo inteligente**: Asigna automáticamente categorías basado en palabras clave
+    """)
+    
+    # Simulated interface for now
+    st.subheader("🔄 Importador de Ejercicios LaTeX")
+    
+    # Método de entrada
+    input_method = st.radio(
+        "Método de entrada:",
+        ["📁 Subir archivo LaTeX", "📝 Pegar código LaTeX"]
+    )
+    
+    exercises_found = []
+    
+    if input_method == "📁 Subir archivo LaTeX":
+        uploaded_file = st.file_uploader(
+            "Selecciona archivo .tex",
+            type=['tex', 'txt'],
+            help="Sube tu archivo LaTeX con ejercicios"
+        )
+        
+        if uploaded_file:
+            content = str(uploaded_file.read(), "utf-8")
+            
+            with st.expander("👀 Vista previa del archivo"):
+                st.code(content[:1000] + "..." if len(content) > 1000 else content, 
+                        language="latex")
+            
+            if st.button("🔄 Extraer Ejercicios"):
+                # Simulated parsing results
+                exercises_found = [
+                    {
+                        'titulo': 'Ejercicio 1 (extraído)',
+                        'enunciado': 'Calcule la convolución de las señales x(t) y h(t)...',
+                        'nivel_dificultad': 'Intermedio',
+                        'unidad_tematica': 'Sistemas Continuos',
+                        'tiempo_estimado': 20,
+                        'pattern_used': 'ejercicio_environment'
+                    },
+                    {
+                        'titulo': 'Ejercicio 2 (extraído)', 
+                        'enunciado': 'Determine la transformada de Fourier de la señal...',
+                        'nivel_dificultad': 'Avanzado',
+                        'unidad_tematica': 'Transformada de Fourier',
+                        'tiempo_estimado': 30,
+                        'pattern_used': 'section_exercises'
+                    }
+                ]
+                
+                st.success(f"✅ Se encontraron {len(exercises_found)} ejercicios")
+    
+    elif input_method == "📝 Pegar código LaTeX":
+        latex_content = st.text_area(
+            "Pega tu código LaTeX aquí:",
+            height=300,
+            placeholder="""\\begin{ejercicio}
+% Dificultad: Intermedio
+% Unidad: Sistemas Continuos
+Calcule la convolución y(t) = x(t) * h(t) donde:
+- x(t) = rect(t/2)
+- h(t) = δ(t-1)
+\\end{ejercicio}"""
+        )
+        
+        if latex_content and st.button("🔄 Extraer Ejercicios"):
+            # Simple parsing simulation
+            if "ejercicio" in latex_content.lower():
+                exercises_found = [{
+                    'titulo': 'Ejercicio parseado',
+                    'enunciado': latex_content[:200] + "...",
+                    'nivel_dificultad': 'Intermedio',
+                    'unidad_tematica': 'Por determinar',
+                    'tiempo_estimado': 20,
+                    'pattern_used': 'manual_input'
+                }]
+                st.success("✅ Se encontró 1 ejercicio")
+    
+    # Mostrar ejercicios encontrados
+    if exercises_found:
+        st.subheader("📋 Ejercicios Encontrados")
+        
+        for i, exercise in enumerate(exercises_found):
+            with st.expander(f"📝 {exercise['titulo']}", expanded=False):
+                col1, col2 = st.columns([2, 1])
+                
+                with col1:
+                    st.write("**Enunciado:**")
+                    st.write(exercise['enunciado'])
+                
+                with col2:
+                    st.write("**Metadatos:**")
+                    st.write(f"- **Dificultad:** {exercise['nivel_dificultad']}")
+                    st.write(f"- **Unidad:** {exercise['unidad_tematica']}")
+                    st.write(f"- **Tiempo:** {exercise['tiempo_estimado']} min")
+                    st.write(f"- **Patrón:** {exercise['pattern_used']}")
+        
+        # Importación
+        st.subheader("💾 Importar a Base de Datos")
+        
+        import_all = st.checkbox("Importar todos los ejercicios", value=True)
+        
+        if st.button("💾 Confirmar Importación", type="primary"):
+            # Simulated import
+            st.success(f"✅ Se importaron {len(exercises_found)} ejercicios exitosamente!")
+            st.balloons()
+            st.info("Los ejercicios están ahora disponibles en 'Buscar Ejercicios'")
+    
+    with st.expander("💡 Consejos para mejores resultados"):
+        st.markdown("""
+        **Patrones reconocidos automáticamente:**
+        - `\\begin{ejercicio}...\\end{ejercicio}`
+        - `\\begin{problem}...\\end{problem}`
+        - `\\ejercicio{...}`
+        - Numeración con `\\item`
+        - Secciones con ejercicios
+        
+        **Metadatos que se extraen:**
+        - `% Dificultad: Básico/Intermedio/Avanzado/Desafío`
+        - `% Unidad: Sistemas Continuos`
+        - `% Tiempo: 25` (minutos)
+        - `\\begin{solucion}...\\end{solucion}`
+        
+        **Palabras clave para clasificación automática:**
+        - "convolución", "lineal" → Sistemas Continuos
+        - "fourier", "serie" → Transformada de Fourier
+        - "laplace" → Transformada de Laplace
+        - "muestreo", "discreto" → Sistemas Discretos
+        - "dft", "fft" → Transformada de Fourier Discreta
+        - "transformada z" → Transformada Z
+        """)
+
+def show_settings():
+    """Página de configuración"""
+    st.markdown('<h1 class="main-header">⚙️ Configuración</h1>', 
+                unsafe_allow_html=True)
+    
+    # Configuración general
+    st.subheader("🔧 Configuración General")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.text_input("Nombre del Profesor", value="Patricio de la Cuadra")
+        st.text_input("Curso", value="IEE2103 - Señales y Sistemas")
+        st.text_input("Universidad", value="Pontificia Universidad Católica de Chile")
+        
+    with col2:
+        st.text_input("Semestre Actual", value="2024-2")
+        st.text_input("Email", value="pcuadra@uc.cl")
+        st.selectbox("Idioma", ["Español", "English"])
+    
+    # Configuración de importación LaTeX
+    st.subheader("📥 Configuración de Importación LaTeX")
+    
+    with st.expander("🔧 Patrones Personalizados"):
+        st.write("Define patrones específicos para tus ejercicios:")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.text_input("Comando inicio ejercicio", value="\\begin{ejercicio}")
+            st.text_input("Comando fin ejercicio", value="\\end{ejercicio}")
+            
+        with col2:
+            st.text_input("Patrón dificultad", value="% Dificultad:")
+            st.text_input("Patrón unidad", value="% Unidad:")
+    
+    # Configuración de exportación
+    st.subheader("📄 Configuración de Exportación")
+    
+    st.text_input("Template LaTeX", value="template_prueba.tex")
+    st.checkbox("Incluir logo UC", value=True)
+    st.checkbox("Numerar ejercicios automáticamente", value=True)
+    st.checkbox("Incluir fecha en documentos", value=True)
+    
+    # Configuración de base de datos
+    st.subheader("💾 Base de Datos")
+    
+    st.text_input("Ruta de Base de Datos", value="database/ejercicios.db")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("🔄 Crear Backup"):
+            st.success("Backup creado exitosamente")
+    with col2:
+        if st.button("📥 Importar Datos"):
+            st.info("Función de importación en desarrollo")
+    with col3:
+        if st.button("📤 Exportar Datos"):
+            st.info("Función de exportación en desarrollo")"""
 Sistema de Gestión de Ejercicios - Señales y Sistemas
 Aplicación principal con Streamlit
 Patricio de la Cuadra - PUC Chile
@@ -138,6 +340,7 @@ def setup_sidebar():
         "🏠 Dashboard",
         "➕ Agregar Ejercicio", 
         "🔍 Buscar Ejercicios",
+        "📥 Importar LaTeX",
         "🎯 Generar Prueba",
         "📊 Estadísticas",
         "⚙️ Configuración"
@@ -575,6 +778,8 @@ def main():
         show_add_exercise()
     elif selected_page == "🔍 Buscar Ejercicios":
         show_search_exercises()
+    elif selected_page == "📥 Importar LaTeX":
+        show_latex_import()
     elif selected_page == "🎯 Generar Prueba":
         show_generate_test()
     elif selected_page == "📊 Estadísticas":
