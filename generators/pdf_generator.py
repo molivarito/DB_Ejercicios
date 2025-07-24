@@ -1,659 +1,595 @@
 """
-Generador de PDFs usando LaTeX para ejercicios y pruebas - V2.0
-Sistema de Gestión de Ejercicios - Señales y Sistemas
-VERSIÓN FINAL FUNCIONANDO - Fix geometry y compilación
+PDF Generator V3.0 - Usando Templates LaTeX Reales Existentes
+Compatible con templates: guia_template.tex, prueba_template.tex, tarea_template.tex
+Sistema DB_Ejercicios - IEE2103 Señales y Sistemas PUC
 """
 
-from pylatex import Document, Section, Subsection, Command, Package, NewPage
-from pylatex.base_classes import Environment
-from pylatex.utils import italic, bold, NoEscape
 import os
+import re
+import shutil
+from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
-import tempfile
 import subprocess
-import shutil
+import tempfile
 
-class PUCLatexTemplate:
-    """Template LaTeX personalizado para la PUC"""
+class RealTemplatePDFGenerator:
+    """Generador que usa los templates LaTeX reales existentes"""
     
-    def __init__(self):
-        # REMOVIDO geometry_options de aquí para evitar conflicto
-        self.packages = [
-            Package('babel', options='spanish'),
-            Package('inputenc', options='utf8'),
-            Package('fontenc', options='T1'),
-            Package('amsmath'),
-            Package('amsfonts'),
-            Package('amssymb'),
-            Package('graphicx'),
-            Package('float'),
-            Package('enumitem'),
-            Package('fancyhdr'),
-            Package('titlesec'),
-            Package('xcolor'),
-            Package('hyperref')
-            # REMOVIDO geometry para evitar conflicto
-        ]
+    def __init__(self, output_dir: str = "output", templates_dir: str = "templates"):
+        self.output_dir = Path(output_dir)
+        self.templates_dir = Path(templates_dir)
+        
+        # Crear directorios si no existen
+        self.output_dir.mkdir(exist_ok=True)
+        
+        # Verificar que existan los templates
+        self.required_templates = {
+            'guia': 'guia_template.tex',
+            'prueba': 'prueba_template.tex', 
+            'tarea': 'tarea_template.tex'
+        }
+        
+        self._verify_templates()
+    
+    def _verify_templates(self):
+        """Verifica que existan los templates necesarios"""
+        missing = []
+        for template_type, template_file in self.required_templates.items():
+            template_path = self.templates_dir / template_file
+            if not template_path.exists():
+                missing.append(template_file)
+        
+        if missing:
+            print(f"⚠️  Templates faltantes: {missing}")
+            print(f"📁 Verificar en: {self.templates_dir}")
+        else:
+            print(f"✅ Templates encontrados: {list(self.required_templates.values())}")
+    
+    def generate_guia(self, exercises: List[Dict], guide_info: Dict) -> str:
+        """Genera guía usando guia_template.tex"""
+        
+        template_path = self.templates_dir / 'guia_template.tex'
+        if not template_path.exists():
+            raise FileNotFoundError(f"Template no encontrado: {template_path}")
+        
+        # Leer template base
+        with open(template_path, 'r', encoding='utf-8') as f:
+            template_content = f.read()
+        
+        # Preparar configuración
+        config_data = {
+            'titulo': guide_info.get('nombre', 'Guía de Ejercicios - Señales y Sistemas'),
+            'unidad': guide_info.get('unidad', 'Múltiples Unidades'),
+            'fecha': guide_info.get('fecha', datetime.now().strftime('%B %Y')),
+            'profesor': guide_info.get('profesor', 'Patricio de la Cuadra'),
+            'semestre': guide_info.get('semestre', '2024-2'),
+            'descripcion': guide_info.get('descripcion', 'Ejercicios de práctica para reforzar conceptos del curso.')
+        }
+        
+        # Reemplazar configuración en template
+        modified_content = self._replace_guia_config(template_content, config_data)
+        
+        # Generar ejercicios en formato del template
+        ejercicios_tex = self._generate_guia_exercises(exercises)
+        
+        # Reemplazar la sección de ejercicios
+        modified_content = self._replace_exercises_section(modified_content, ejercicios_tex, 'guia')
+        
+        # Compilar
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"guia_{timestamp}"
+        
+        return self._compile_latex(modified_content, filename)
+    
+    def generate_prueba(self, exercises: List[Dict], exam_info: Dict) -> Tuple[str, str]:
+        """Genera prueba usando prueba_template.tex"""
+        
+        template_path = self.templates_dir / 'prueba_template.tex'
+        if not template_path.exists():
+            raise FileNotFoundError(f"Template no encontrado: {template_path}")
+        
+        # Leer template base
+        with open(template_path, 'r', encoding='utf-8') as f:
+            template_content = f.read()
+        
+        # Preparar configuración
+        config_data = {
+            'nombre': exam_info.get('nombre', 'Interrogación 1'),
+            'fecha': exam_info.get('fecha', datetime.now().strftime('%d de %B, %Y')),
+            'tiempo': f"{exam_info.get('tiempo_total', 90)} minutos",
+            'profesor': exam_info.get('profesor', 'Patricio de la Cuadra'),
+            'semestre': exam_info.get('semestre', '2024-2'),
+            'puntaje_total': self._calculate_total_points(exercises)
+        }
+        
+        # Reemplazar configuración
+        modified_content = self._replace_prueba_config(template_content, config_data)
+        
+        # Generar ejercicios
+        ejercicios_tex = self._generate_prueba_exercises(exercises)
+        
+        # Reemplazar ejercicios
+        modified_content = self._replace_exercises_section(modified_content, ejercicios_tex, 'prueba')
+        
+        # Compilar versión sin soluciones
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename_main = f"prueba_{timestamp}"
+        pdf_main = self._compile_latex(modified_content, filename_main)
+        
+        # Compilar versión con soluciones
+        modified_content_sol = modified_content.replace('% \\solucionestrue', '\\solucionestrue')
+        filename_sol = f"prueba_{timestamp}_soluciones"
+        pdf_sol = self._compile_latex(modified_content_sol, filename_sol)
+        
+        return pdf_main, pdf_sol
+    
+    def generate_tarea(self, exercises: List[Dict], task_info: Dict) -> str:
+        """Genera tarea usando tarea_template.tex"""
+        
+        template_path = self.templates_dir / 'tarea_template.tex'
+        if not template_path.exists():
+            raise FileNotFoundError(f"Template no encontrado: {template_path}")
+        
+        # Leer template base
+        with open(template_path, 'r', encoding='utf-8') as f:
+            template_content = f.read()
+        
+        # Preparar configuración
+        config_data = {
+            'numero': task_info.get('numero', '1'),
+            'fecha_entrega': task_info.get('fecha_entrega', datetime.now().strftime('%d de %B')),
+            'hora_entrega': task_info.get('hora_entrega', '23:59 hrs'),
+            'semestre': task_info.get('semestre', '2024-2'),
+            'profesor': task_info.get('profesor', 'Patricio de la Cuadra'),
+            'puntaje_total': self._calculate_total_points(exercises)
+        }
+        
+        # Reemplazar configuración
+        modified_content = self._replace_tarea_config(template_content, config_data)
+        
+        # Clasificar ejercicios por tipo
+        ejercicios_teoricos, ejercicios_implementacion = self._classify_exercises(exercises)
+        
+        # Generar ejercicios
+        teoricos_tex = self._generate_tarea_exercises(ejercicios_teoricos, 'teorico')
+        implementacion_tex = self._generate_tarea_exercises(ejercicios_implementacion, 'implementacion')
+        
+        # Reemplazar secciones
+        modified_content = self._replace_tarea_sections(
+            modified_content, teoricos_tex, implementacion_tex
+        )
+        
+        # Compilar
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"tarea_{timestamp}"
+        
+        return self._compile_latex(modified_content, filename)
+    
+    def _replace_guia_config(self, content: str, config: Dict) -> str:
+        """Reemplaza configuración en template de guía"""
+        # Buscar el bloque \configurarguia y reemplazarlo
+        config_pattern = r'\\configurarguia\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}'
+        
+        new_config = f"""\\configurarguia{{
+  {config['titulo']}
+}}{{
+  {config['unidad']}
+}}{{
+  {config['fecha']}
+}}{{
+  {config['profesor']}
+}}{{
+  {config['semestre']}
+}}{{
+  {config['descripcion']}
+}}"""
+        
+        return re.sub(config_pattern, new_config, content, flags=re.DOTALL)
+    
+    def _replace_prueba_config(self, content: str, config: Dict) -> str:
+        """Reemplaza configuración en template de prueba"""
+        config_pattern = r'\\configurarprueba\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}'
+        
+        new_config = f"""\\configurarprueba{{
+  {config['nombre']}
+}}{{
+  {config['fecha']}
+}}{{
+  {config['tiempo']}
+}}{{
+  {config['profesor']}
+}}{{
+  {config['semestre']}
+}}{{
+  {config['puntaje_total']}
+}}{{
+  % Instrucciones (definidas en el template)
+}}"""
+        
+        return re.sub(config_pattern, new_config, content, flags=re.DOTALL)
+    
+    def _replace_tarea_config(self, content: str, config: Dict) -> str:
+        """Reemplaza configuración en template de tarea"""
+        config_pattern = r'\\configurartarea\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}\{[^}]*\}'
+        
+        new_config = f"""\\configurartarea{{
+  {config['numero']}
+}}{{
+  {config['fecha_entrega']}
+}}{{
+  {config['hora_entrega']}
+}}{{
+  {config['semestre']}
+}}{{
+  {config['profesor']}
+}}{{
+  {config['puntaje_total']}
+}}"""
+        
+        return re.sub(config_pattern, new_config, content, flags=re.DOTALL)
+    
+    def _generate_guia_exercises(self, exercises: List[Dict]) -> str:
+        """Genera ejercicios en formato de guía usando estructura del template"""
+        ejercicios_tex = []
+        
+        # Agrupar por unidad temática
+        ejercicios_por_unidad = {}
+        for exercise in exercises:
+            unidad = exercise.get('unidad_tematica', 'Ejercicios Generales')
+            if unidad not in ejercicios_por_unidad:
+                ejercicios_por_unidad[unidad] = []
+            ejercicios_por_unidad[unidad].append(exercise)
+        
+        for unidad, ejercicios_unidad in ejercicios_por_unidad.items():
+            # Crear grupo de ejercicios usando el formato del template
+            ejercicios_tex.append(f"""
+\\begin{{grupoejercicio}}{{{unidad}}}{{Ejercicios para practicar {unidad}}}
+""")
+            
+            for exercise in ejercicios_unidad:
+                dificultad_cmd = self._get_difficulty_command(exercise.get('nivel_dificultad', 'Intermedio'))
+                tiempo = exercise.get('tiempo_estimado', 20)
+                titulo = self._escape_latex(exercise.get('titulo', 'Ejercicio'))
+                enunciado = self._escape_latex(exercise.get('enunciado', ''))
+                
+                ejercicio_tex = f"""
+\\begin{{ejercicio}}[{titulo}]{{{tiempo}}}{{\\{dificultad_cmd}}}
+  {enunciado}
+  
+  \\espaciotrabajo[6cm]
+  
+  \\begin{{solucion}}
+    {self._escape_latex(exercise.get('solucion_completa', 'Solución por desarrollar.'))}
+  \\end{{solucion}}
+\\end{{ejercicio}}
+"""
+                ejercicios_tex.append(ejercicio_tex)
+            
+            ejercicios_tex.append("\\end{grupoejercicio}\n")
+        
+        return '\n'.join(ejercicios_tex)
+    
+    def _generate_prueba_exercises(self, exercises: List[Dict]) -> str:
+        """Genera ejercicios en formato de prueba"""
+        ejercicios_tex = []
+        
+        for exercise in exercises:
+            titulo = self._escape_latex(exercise.get('titulo', ''))
+            puntos = exercise.get('puntos', 6)  # Default 6 puntos
+            enunciado = self._escape_latex(exercise.get('enunciado', ''))
+            
+            # Agregar datos si existen
+            if exercise.get('datos_entrada'):
+                enunciado += f"\n\n\\textbf{{Datos:}} {self._escape_latex(exercise['datos_entrada'])}"
+            
+            ejercicio_tex = f"""
+\\begin{{ejercicio}}[{titulo}]{{{puntos}}}
+  {enunciado}
+  
+  \\respuesta[8cm]
+  
+  \\begin{{solucion}}
+    {self._escape_latex(exercise.get('solucion_completa', 'Solución por desarrollar.'))}
+  \\end{{solucion}}
+\\end{{ejercicio}}
+"""
+            ejercicios_tex.append(ejercicio_tex)
+        
+        return '\n'.join(ejercicios_tex)
+    
+    def _generate_tarea_exercises(self, exercises: List[Dict], tipo: str) -> str:
+        """Genera ejercicios en formato de tarea"""
+        ejercicios_tex = []
+        
+        for exercise in exercises:
+            titulo = self._escape_latex(exercise.get('titulo', 'Ejercicio'))
+            puntos = exercise.get('puntos', 2)
+            enunciado = self._escape_latex(exercise.get('enunciado', ''))
+            
+            # Agregar código Python si es de implementación
+            if tipo == 'implementacion' and exercise.get('codigo_python'):
+                codigo = exercise['codigo_python']
+                enunciado += f"""
+  
+  \\begin{{codigo}}
+{codigo}
+  \\end{{codigo}}
+"""
+            
+            ejercicio_tex = f"""
+\\begin{{ejercicio}}[{titulo}]{{{puntos}}}
+  {enunciado}
+  
+  \\begin{{solucion}}
+    {self._escape_latex(exercise.get('solucion_completa', 'Solución por desarrollar.'))}
+  \\end{{solucion}}
+\\end{{ejercicio}}
+"""
+            ejercicios_tex.append(ejercicio_tex)
+        
+        return '\n'.join(ejercicios_tex)
+    
+    def _replace_exercises_section(self, content: str, ejercicios_tex: str, template_type: str) -> str:
+        """Reemplaza la sección de ejercicios en el template"""
+        if template_type == 'guia':
+            # Buscar después de los objetivos y reemplazar hasta el final
+            pattern = r'(% ========== GRUPO 1:.*?)(?=% ========== RECURSOS ADICIONALES|% ========== PIE DE PÁGINA|\\vfill|\\end\{document\})'
+            replacement = f"% ========== EJERCICIOS GENERADOS ==========\n{ejercicios_tex}\n\n"
+            
+        elif template_type == 'prueba':
+            # Buscar después de instrucciones y reemplazar hasta pie de página
+            pattern = r'(% ========== EJERCICIOS ==========.*?)(?=\\newpage|% ========== PIE DE PÁGINA|\\vfill|\\end\{document\})'
+            replacement = f"% ========== EJERCICIOS GENERADOS ==========\n{ejercicios_tex}\n\n"
+        
+        return re.sub(pattern, replacement, content, flags=re.DOTALL)
+    
+    def _replace_tarea_sections(self, content: str, teoricos_tex: str, implementacion_tex: str) -> str:
+        """Reemplaza secciones de tarea"""
+        # Reemplazar ejercicios teóricos
+        if teoricos_tex.strip():
+            teoricos_pattern = r'(\\begin\{ejerciciosteoricos\}.*?)\\end\{ejerciciosteoricos\}'
+            teoricos_replacement = f"""\\begin{{ejerciciosteoricos}}
 
-class ExercisePDFGenerator:
-    """Generador de PDFs para ejercicios y pruebas - VERSIÓN FUNCIONANDO"""
+{teoricos_tex}
+
+\\end{{ejerciciosteoricos}}"""
+            content = re.sub(teoricos_pattern, teoricos_replacement, content, flags=re.DOTALL)
+        
+        # Reemplazar ejercicios de implementación
+        if implementacion_tex.strip():
+            impl_pattern = r'(\\begin\{ejerciciosimplementacion\}.*?)\\end\{ejerciciosimplementacion\}'
+            impl_replacement = f"""\\begin{{ejerciciosimplementacion}}
+
+{implementacion_tex}
+
+\\end{{ejerciciosimplementacion}}"""
+            content = re.sub(impl_pattern, impl_replacement, content, flags=re.DOTALL)
+        
+        return content
     
-    def __init__(self, output_dir: str = "output"):
-        self.output_dir = output_dir
-        self.template = PUCLatexTemplate()
+    def _classify_exercises(self, exercises: List[Dict]) -> Tuple[List[Dict], List[Dict]]:
+        """Clasifica ejercicios en teóricos e implementación"""
+        teoricos = []
+        implementacion = []
         
-        # Crear directorio de salida si no existe
-        os.makedirs(output_dir, exist_ok=True)
+        for exercise in exercises:
+            modalidad = exercise.get('modalidad', 'Teórico')
+            if modalidad in ['Computacional', 'Mixto'] or exercise.get('codigo_python'):
+                implementacion.append(exercise)
+            else:
+                teoricos.append(exercise)
         
-    def _clean_text_for_latex(self, text: str) -> str:
-        """Limpia texto para evitar problemas de codificación en LaTeX"""
+        return teoricos, implementacion
+    
+    def _get_difficulty_command(self, dificultad: str) -> str:
+        """Retorna comando LaTeX para dificultad"""
+        mapping = {
+            'Básico': 'basico',
+            'Intermedio': 'intermedio',
+            'Avanzado': 'avanzado',
+            'Desafío': 'desafio'
+        }
+        return mapping.get(dificultad, 'intermedio')
+    
+    def _calculate_total_points(self, exercises: List[Dict]) -> int:
+        """Calcula puntos totales"""
+        total = 0
+        for exercise in exercises:
+            puntos = exercise.get('puntos')
+            if puntos is None:
+                # Asignar puntos por defecto según modalidad
+                if exercise.get('modalidad') == 'Computacional':
+                    puntos = 4
+                else:
+                    puntos = 6
+            
+            if isinstance(puntos, (int, float)):
+                total += puntos
+        
+        return int(total) if total > 0 else len(exercises) * 6
+    
+    def _escape_latex(self, text: str) -> str:
+        """Escapa caracteres especiales de LaTeX (versión conservadora)"""
         if not text:
             return ""
         
-        # Reemplazar caracteres problemáticos
+        # Solo escapar caracteres que sabemos que causan problemas
+        # Ser conservador para no romper LaTeX math existente
         replacements = {
-            'á': r'\'{a}',
-            'é': r'\'{e}',
-            'í': r'\'{i}',
-            'ó': r'\'{o}',
-            'ú': r'\'{u}',
-            'ñ': r'\~{n}',
-            'Á': r'\'{A}',
-            'É': r'\'{E}',
-            'Í': r'\'{I}',
-            'Ó': r'\'{O}',
-            'Ú': r'\'{U}',
-            'Ñ': r'\~{N}',
-            'ü': r'\"{u}',
-            'Ü': r'\"{U}',
-            '°': r'$^{\circ}$',
-            'π': r'$\pi$',
-            'τ': r'$\tau$',
-            'ω': r'$\omega$',
-            'α': r'$\alpha$',
-            'β': r'$\beta$',
-            'γ': r'$\gamma$',
-            'δ': r'$\delta$',
-            'σ': r'$\sigma$',
-            '∞': r'$\infty$',
-            '∫': r'$\int$',
-            '≤': r'$\leq$',
-            '≥': r'$\geq$',
-            '≠': r'$\neq$',
-            '±': r'$\pm$'
+            '&': '\\&',
+            '%': '\\%',
+            '#': '\\#',
+            '_': '\\_',
+            '~': '\\textasciitilde{}',
+            '^': '\\textasciicircum{}'
         }
         
-        for char, replacement in replacements.items():
-            text = text.replace(char, replacement)
+        for char, escaped in replacements.items():
+            # Solo reemplazar si no está ya escapado
+            text = re.sub(f'(?<!\\\\){re.escape(char)}', escaped, text)
         
         return text
-        
-    def create_document(self, title: str, include_solutions: bool = False) -> Document:
-        """Crea un documento LaTeX base - CON geometry en el lugar correcto"""
-        # Crear documento CON geometry_options para evitar el error de preámbulo
-        geometry_options = {
-            'tmargin': '2.5cm',
-            'lmargin': '2.5cm',
-            'rmargin': '2.5cm',
-            'bmargin': '2.5cm'
-        }
-        
-        doc = Document(geometry_options=geometry_options)
-        
-        # Agregar paquetes DESPUÉS de geometry
-        for package in self.template.packages:
-            doc.packages.append(package)
-        
-        # Configurar encabezado y pie de página usando comandos LaTeX directos
-        doc.append(Command('pagestyle', 'fancy'))
-        doc.append(Command('fancyhf', ''))
-        doc.append(NoEscape(r'\fancyhead[L]{Pontificia Universidad Cat\'{o}lica de Chile}'))
-        doc.append(NoEscape(r'\fancyhead[R]{IEE2103 - Se\~{n}ales y Sistemas}'))
-        doc.append(NoEscape(r'\fancyfoot[C]{\thepage}'))
-        
-        # Configurar colores PUC
-        doc.append(NoEscape(r'\definecolor{pucblue}{RGB}{31, 78, 121}'))
-        doc.append(NoEscape(r'\definecolor{pucgold}{RGB}{198, 146, 20}'))
-        
-        return doc
     
-    def add_header(self, doc: Document, exam_info: Dict):
-        """Agrega el encabezado de la prueba"""
-        with doc.create(Section('', numbering=False)):
-            doc.append(Command('centering'))
-            doc.append(Command('Large'))
+    def _compile_latex(self, content: str, filename: str) -> str:
+        """Compila LaTeX a PDF"""
+        # Crear archivo temporal
+        with tempfile.NamedTemporaryFile(
+            mode='w',
+            suffix='.tex',
+            delete=False,
+            encoding='utf-8',
+            dir=self.output_dir
+        ) as tmp_file:
+            tmp_file.write(content)
+            tmp_tex_path = tmp_file.name
+        
+        try:
+            # Compilar LaTeX
+            cmd = [
+                'pdflatex',
+                '-interaction=nonstopmode',
+                '-output-directory', str(self.output_dir),
+                tmp_tex_path
+            ]
             
-            # Limpiar nombre del examen
-            nombre = self._clean_text_for_latex(exam_info.get('nombre', 'Ejercicios de Señales y Sistemas'))
-            doc.append(bold(nombre))
-            doc.append(Command('par'))
-            doc.append(Command('vspace', '0.5cm'))
+            # Ejecutar dos veces para referencias cruzadas
+            for run in range(2):
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                if result.returncode != 0:
+                    # En el primer run, algunos errores son normales
+                    if run == 1:  # Solo fallar en el segundo run
+                        error_msg = f"Error compilando LaTeX:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}"
+                        raise Exception(error_msg)
             
-            # Información del curso
-            doc.append(Command('normalsize'))
-            profesor = self._clean_text_for_latex(exam_info.get('profesor', 'Patricio de la Cuadra'))
-            doc.append(f"Profesor: {profesor}")
-            doc.append(Command('hfill'))
-            doc.append(f"Semestre: {exam_info.get('semestre', '2024-2')}")
-            doc.append(Command('par'))
+            # Mover PDF al nombre final
+            tmp_pdf = tmp_tex_path.replace('.tex', '.pdf')
+            final_pdf = self.output_dir / f"{filename}.pdf"
             
-            if 'fecha' in exam_info:
-                fecha = self._clean_text_for_latex(exam_info['fecha'])
-                doc.append(f"Fecha: {fecha}")
-                doc.append(Command('hfill'))
+            if os.path.exists(tmp_pdf):
+                shutil.move(tmp_pdf, final_pdf)
+            else:
+                raise Exception("PDF no fue generado correctamente")
             
-            if 'tiempo_total' in exam_info:
-                doc.append(f"Tiempo: {exam_info['tiempo_total']} minutos")
-                doc.append(Command('par'))
+            # Limpiar archivos temporales
+            self._cleanup_temp_files(tmp_tex_path)
             
-            doc.append(Command('vspace', '0.5cm'))
-            doc.append(Command('hrule'))
-            doc.append(Command('vspace', '0.5cm'))
+            return str(final_pdf)
+            
+        except subprocess.TimeoutExpired:
+            self._cleanup_temp_files(tmp_tex_path)
+            raise Exception("Timeout compilando LaTeX - proceso tomó más de 30 segundos")
+        except Exception as e:
+            # Limpiar en caso de error
+            self._cleanup_temp_files(tmp_tex_path)
+            raise e
     
-    def add_instructions(self, doc: Document, instructions: List[str]):
-        """Agrega instrucciones generales"""
-        with doc.create(Subsection('Instrucciones', numbering=False)):
-            # Usar LaTeX directo para el entorno enumerate
-            doc.append(NoEscape(r'\begin{enumerate}'))
-            for instruction in instructions:
-                # Limpiar instrucción
-                clean_instruction = self._clean_text_for_latex(instruction)
-                doc.append(NoEscape(f'\\item {clean_instruction}'))
-            doc.append(NoEscape(r'\end{enumerate}'))
+    def _cleanup_temp_files(self, tex_path: str):
+        """Limpia archivos temporales de LaTeX"""
+        base_name = tex_path.replace('.tex', '')
+        extensions = ['.tex', '.aux', '.log', '.out', '.toc', '.fls', '.fdb_latexmk']
         
-        doc.append(Command('vspace', '0.5cm'))
-    
-    def add_exercise(self, doc: Document, exercise: Dict, exercise_num: int, include_solution: bool = False):
-        """Agrega un ejercicio al documento"""
-        # Título del ejercicio
-        exercise_title = f"Ejercicio {exercise_num}"
-        if exercise.get('titulo'):
-            titulo_limpio = self._clean_text_for_latex(exercise['titulo'])
-            exercise_title += f": {titulo_limpio}"
-        
-        with doc.create(Subsection(exercise_title, numbering=False)):
-            # Información del ejercicio
-            info_parts = []
-            if exercise.get('tiempo_estimado'):
-                info_parts.append(f"Tiempo estimado: {exercise['tiempo_estimado']} minutos")
-            if exercise.get('nivel_dificultad'):
-                info_parts.append(f"Dificultad: {exercise['nivel_dificultad']}")
-            if exercise.get('puntaje'):
-                info_parts.append(f"Puntaje: {exercise['puntaje']} pts")
-            
-            if info_parts:
-                doc.append(italic(" | ".join(info_parts)))
-                doc.append(Command('par'))
-                doc.append(Command('vspace', '0.3cm'))
-            
-            # Enunciado
-            if exercise.get('enunciado'):
-                enunciado_limpio = self._clean_text_for_latex(exercise['enunciado'])
-                doc.append(enunciado_limpio)
-                doc.append(Command('par'))
-            
-            # Datos de entrada si existen
-            if exercise.get('datos_entrada'):
-                doc.append(Command('vspace', '0.3cm'))
-                doc.append(bold('Datos:'))
-                doc.append(Command('par'))
-                datos_limpios = self._clean_text_for_latex(exercise['datos_entrada'])
-                doc.append(datos_limpios)
-                doc.append(Command('par'))
-            
-            # Código Python si existe y es modalidad computacional
-            if exercise.get('codigo_python') and exercise.get('modalidad') in ['Computacional', 'Mixto']:
-                doc.append(Command('vspace', '0.3cm'))
-                doc.append(bold('Código de apoyo:'))
-                doc.append(Command('par'))
-                
-                # Entorno de código usando LaTeX directo
-                doc.append(NoEscape(r'\begin{verbatim}'))
-                # El código Python no necesita limpieza especial
-                doc.append(NoEscape(exercise['codigo_python']))
-                doc.append(NoEscape(r'\end{verbatim}'))
-            
-            # Espacio para respuesta
-            doc.append(Command('vspace', '2cm'))
-            
-            # Solución (si se solicita)
-            if include_solution and exercise.get('solucion_completa'):
-                doc.append(Command('vspace', '0.5cm'))
-                doc.append(NoEscape(r'\begin{quote}'))
-                doc.append(NoEscape(r'\textcolor{red}{\textbf{Soluci\'{o}n:}}'))
-                doc.append(Command('par'))
-                solucion_limpia = self._clean_text_for_latex(exercise['solucion_completa'])
-                doc.append(solucion_limpia)
-                
-                if exercise.get('respuesta_final'):
-                    doc.append(Command('par'))
-                    doc.append(Command('vspace', '0.3cm'))
-                    doc.append(bold('Respuesta final: '))
-                    respuesta_limpia = self._clean_text_for_latex(exercise['respuesta_final'])
-                    doc.append(respuesta_limpia)
-                doc.append(NoEscape(r'\end{quote}'))
-        
-        doc.append(Command('vspace', '1cm'))
+        for ext in extensions:
+            file_path = base_name + ext
+            if os.path.exists(file_path):
+                try:
+                    os.unlink(file_path)
+                except:
+                    pass  # Ignorar errores de limpieza
+
+# Wrapper para compatibilidad con API anterior
+class ExercisePDFGenerator(RealTemplatePDFGenerator):
+    """Wrapper para mantener compatibilidad con API anterior"""
     
     def generate_exam_pdf(self, 
                          exercises: List[Dict], 
                          exam_info: Dict,
                          include_solutions: bool = False,
-                         filename: Optional[str] = None) -> Tuple[str, Optional[str]]:
-        """Genera un PDF de prueba con los ejercicios dados"""
-        
-        if filename is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            base_name = exam_info.get('nombre', 'prueba').replace(' ', '_').lower()
-            # Limpiar nombre de archivo
-            base_name = ''.join(c for c in base_name if c.isalnum() or c in '_-')
-            filename = f"{base_name}_{timestamp}"
-        
-        # Crear documento
-        doc = self.create_document(exam_info.get('nombre', 'Prueba'), include_solutions)
-        
-        # Agregar encabezado
-        self.add_header(doc, exam_info)
-        
-        # Instrucciones por defecto
-        default_instructions = [
-            "Lea cuidadosamente cada ejercicio antes de responder.",
-            "Muestre claramente todos los pasos de desarrollo.",
-            "Se puede usar calculadora cientifica.",
-            "Escriba su nombre y RUT en todas las hojas."
-        ]
-        
-        instructions = exam_info.get('instrucciones', default_instructions)
-        self.add_instructions(doc, instructions)
-        
-        # Agregar ejercicios
-        for i, exercise in enumerate(exercises, 1):
-            self.add_exercise(doc, exercise, i, include_solutions)
-            
-            # Agregar nueva página entre ejercicios (excepto el último)
-            if i < len(exercises):
-                doc.append(NewPage())
-        
-        # Generar PDF con manejo de errores mejorado
-        output_path = os.path.join(self.output_dir, filename)
-        
-        try:
-            # Usar directorio temporal para evitar problemas de permisos
-            with tempfile.TemporaryDirectory() as temp_dir:
-                temp_path = os.path.join(temp_dir, filename)
-                
-                # Generar PDF en directorio temporal - SIN argumentos duplicados
-                # Y verificar si se generó exitosamente
-                try:
-                    doc.generate_pdf(temp_path, clean_tex=True, compiler='pdflatex')
-                except Exception as latex_error:
-                    # Si hay error de LaTeX, verificar si el PDF se generó de todas formas
-                    temp_pdf = f"{temp_path}.pdf"
-                    if not os.path.exists(temp_pdf):
-                        raise latex_error
-                    print(f"⚠️  LaTeX dio warnings pero PDF generado exitosamente")
-                
-                # Copiar a directorio final
-                temp_pdf = f"{temp_path}.pdf"
-                final_pdf = f"{output_path}.pdf"
-                
-                if os.path.exists(temp_pdf):
-                    shutil.copy2(temp_pdf, final_pdf)
-                    pdf_path = final_pdf
-                else:
-                    raise FileNotFoundError(f"PDF no generado: {temp_pdf}")
-            
-            # También generar versión con soluciones si no se incluyeron
-            pdf_soluciones = None
-            if not include_solutions and any(ex.get('solucion_completa') for ex in exercises):
-                solutions_filename = f"{filename}_soluciones"
-                pdf_soluciones = self.generate_exam_pdf(
-                    exercises, exam_info, include_solutions=True, filename=solutions_filename
-                )[0]
-            
-            return pdf_path, pdf_soluciones
-            
-        except Exception as e:
-            # Verificar si el PDF se generó a pesar del error
-            final_pdf = f"{output_path}.pdf"
-            if os.path.exists(final_pdf):
-                print(f"⚠️  PDF generado a pesar del warning: {final_pdf}")
-                return final_pdf, None
-            else:
-                raise Exception(f"Error generando PDF: {str(e)}")
+                         filename: Optional[str] = None) -> Tuple[str, str]:
+        """Compatibilidad con API anterior - genera interrogación"""
+        return self.generate_prueba(exercises, exam_info)
     
     def generate_exercise_sheet(self, 
                                exercises: List[Dict], 
                                sheet_info: Dict,
                                filename: Optional[str] = None) -> str:
-        """Genera una guía de ejercicios"""
-        
-        if filename is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"guia_ejercicios_{timestamp}"
-        
-        # Información por defecto para guía
-        sheet_info.setdefault('nombre', 'Guía de Ejercicios - Señales y Sistemas')
-        sheet_info.setdefault('profesor', 'Patricio de la Cuadra')
-        
-        # Crear documento
-        doc = self.create_document(sheet_info['nombre'])
-        
-        # Encabezado
-        self.add_header(doc, sheet_info)
-        
-        # Agregar ejercicios sin instrucciones especiales
-        for i, exercise in enumerate(exercises, 1):
-            self.add_exercise(doc, exercise, i, include_solution=False)
-        
-        # Generar PDF con mismo manejo de errores
-        output_path = os.path.join(self.output_dir, filename)
-        
-        try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                temp_path = os.path.join(temp_dir, filename)
-                
-                doc.generate_pdf(temp_path, clean_tex=True, compiler='pdflatex')
-                
-                temp_pdf = f"{temp_path}.pdf"
-                final_pdf = f"{output_path}.pdf"
-                
-                if os.path.exists(temp_pdf):
-                    shutil.copy2(temp_pdf, final_pdf)
-                    return final_pdf
-                else:
-                    # Verificar si se generó a pesar del warning
-                    if os.path.exists(final_pdf):
-                        print(f"⚠️  PDF generado a pesar del warning: {final_pdf}")
-                        return final_pdf
-                    raise FileNotFoundError(f"PDF no generado: {temp_pdf}")
-                    
-        except Exception as e:
-            # Verificar si el PDF se generó a pesar del error
-            final_pdf = f"{output_path}.pdf"
-            if os.path.exists(final_pdf):
-                print(f"⚠️  PDF generado a pesar del warning: {final_pdf}")
-                return final_pdf
-            else:
-                raise Exception(f"Error generando guía: {str(e)}")
-    
-    def generate_latex_source(self, 
-                             exercises: List[Dict], 
-                             exam_info: Dict,
-                             filename: Optional[str] = None) -> str:
-        """Genera solo el código LaTeX sin compilar"""
-        
-        if filename is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"source_{timestamp}.tex"
-        
-        # Crear documento
-        doc = self.create_document(exam_info.get('nombre', 'Documento'))
-        
-        # Agregar contenido
-        self.add_header(doc, exam_info)
-        
-        for i, exercise in enumerate(exercises, 1):
-            self.add_exercise(doc, exercise, i, include_solution=False)
-        
-        # Guardar solo el código LaTeX
-        output_path = os.path.join(self.output_dir, filename)
-        
-        try:
-            doc.generate_tex(output_path)
-            return f"{output_path}"
-        except Exception as e:
-            raise Exception(f"Error generando código LaTeX: {str(e)}")
+        """Compatibilidad con API anterior - genera guía"""
+        return self.generate_guia(exercises, sheet_info)
 
-    # ========== NUEVOS MÉTODOS MEJORADOS ==========
-    
-    def generate_tarea_pdf(self,
-                          ejercicios_teoricos: List[Dict],
-                          ejercicios_implementacion: List[Dict],
-                          info_tarea: Dict,
-                          include_solutions: bool = False,
-                          filename: Optional[str] = None) -> str:
-        """Genera PDF de tarea con separación teórico/implementación"""
-        
-        if filename is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            numero = info_tarea.get('numero', '1')
-            filename = f"tarea_{numero}_{timestamp}"
-        
-        # Crear documento
-        doc = self.create_document(f"Tarea {info_tarea.get('numero', '1')}", include_solutions)
-        
-        # Header específico de tarea
-        with doc.create(Section('', numbering=False)):
-            doc.append(Command('centering'))
-            doc.append(Command('Huge'))
-            doc.append(bold(f"Tarea {info_tarea.get('numero', '1')}"))
-            doc.append(Command('par'))
-            doc.append(Command('vspace', '0.3cm'))
-            
-            doc.append(Command('Large'))
-            fecha_entrega = info_tarea.get('fecha_entrega', '25 de septiembre')
-            hora_entrega = info_tarea.get('hora_entrega', '23:59 hrs')
-            doc.append(f"Entrega: {fecha_entrega} a las {hora_entrega}")
-            doc.append(Command('par'))
-            doc.append(Command('vspace', '0.5cm'))
-            doc.append(Command('hrule'))
-            doc.append(Command('vspace', '0.5cm'))
-        
-        # Instrucciones específicas de tarea
-        tarea_instructions = [
-            "Para la parte de implementacion, debe adjuntar codigo desarrollado en Python.",
-            "Entregue un PDF con el desarrollo llamado Apellido\\_Tarea1.pdf.",
-            "La tarea es individual, pero pueden comentar las preguntas con companeros.",
-            "Cada eje de los graficos debe incluir nombre descriptivo y unidades.",
-            "Esta permitido consultar apuntes, libros o material bibliografico.",
-            "No esta permitido compartir codigos o resultados completos."
-        ]
-        
-        self.add_instructions(doc, tarea_instructions)
-        
-        # Sección teórica
-        if ejercicios_teoricos:
-            with doc.create(Section('Ejercicios Teoricos', numbering=False)):
-                for i, exercise in enumerate(ejercicios_teoricos, 1):
-                    self.add_exercise(doc, exercise, i, include_solutions)
-        
-        # Nueva página para implementación
-        if ejercicios_implementacion:
-            doc.append(NewPage())
-            with doc.create(Section('Ejercicios de Implementacion', numbering=False)):
-                for i, exercise in enumerate(ejercicios_implementacion, 1):
-                    self.add_exercise(doc, exercise, i, include_solutions)
-        
-        # Generar PDF
-        output_path = os.path.join(self.output_dir, filename)
-        
-        try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                temp_path = os.path.join(temp_dir, filename)
-                
-                doc.generate_pdf(temp_path, clean_tex=True, compiler='pdflatex')
-                
-                temp_pdf = f"{temp_path}.pdf"
-                final_pdf = f"{output_path}.pdf"
-                
-                if os.path.exists(temp_pdf):
-                    shutil.copy2(temp_pdf, final_pdf)
-                    return final_pdf
-                else:
-                    # Verificar si se generó a pesar del warning
-                    if os.path.exists(final_pdf):
-                        print(f"⚠️  PDF generado a pesar del warning: {final_pdf}")
-                        return final_pdf
-                    raise FileNotFoundError(f"PDF no generado: {temp_pdf}")
-                    
-        except Exception as e:
-            # Verificar si el PDF se generó a pesar del error
-            final_pdf = f"{output_path}.pdf"
-            if os.path.exists(final_pdf):
-                print(f"⚠️  PDF generado a pesar del warning: {final_pdf}")
-                return final_pdf
-            else:
-                raise Exception(f"Error generando tarea: {str(e)}")
-
-# Funciones de utilidad
-def create_sample_exercises():
-    """Crea ejercicios de ejemplo para testing"""
-    return [
-        {
-            'titulo': 'Convolucion de senales rectangulares',
-            'enunciado': 'Calcule la convolucion y(t) = x(t) * h(t) donde x(t) y h(t) son senales rectangulares.',
-            'datos_entrada': 'x(t) = rect(t/2) y h(t) = rect((t-1)/3)',
-            'tiempo_estimado': 20,
-            'nivel_dificultad': 'Intermedio',
-            'modalidad': 'Teorico',
-            'puntaje': 6,
-            'solucion_completa': 'La convolucion se resuelve graficamente considerando el deslizamiento de una funcion sobre la otra.',
-            'respuesta_final': 'y(t) = funcion trapecial con duracion total de 5 segundos'
-        },
-        {
-            'titulo': 'Analisis espectral usando FFT',
-            'enunciado': 'Implemente en Python el analisis espectral de una senal compuesta.',
-            'datos_entrada': 'Senal compuesta por dos sinusoides y ruido gaussiano',
-            'tiempo_estimado': 25,
-            'nivel_dificultad': 'Avanzado',
-            'modalidad': 'Computacional',
-            'puntaje': 4,
-            'codigo_python': '''import numpy as np
-import matplotlib.pyplot as plt
-from scipy.fft import fft, fftfreq
-
-# Generar senal
-fs = 1000
-t = np.linspace(0, 1, fs, endpoint=False)
-s = 2*np.cos(2*np.pi*50*t) + 0.5*np.cos(2*np.pi*120*t)
-
-# Agregar ruido
-ruido = np.random.normal(0, 0.1, len(t))
-s_ruido = s + ruido
-
-# Complete el codigo para calcular FFT y graficar...''',
-            'solucion_completa': 'Se debe implementar FFT usando scipy.fft y graficar tanto la senal temporal como su espectro de magnitud.',
-            'respuesta_final': 'Picos en 50 Hz y 120 Hz claramente identificables'
-        },
-        {
-            'titulo': 'Propiedades de sistemas LTI',
-            'enunciado': 'Determine si los siguientes sistemas son lineales y/o invariantes en el tiempo.',
-            'datos_entrada': 'a) y(t) = integral de x(tau) de 0 a t, b) y(t) = x(t) + t, c) y(t) = x^2(t)',
-            'tiempo_estimado': 15,
-            'nivel_dificultad': 'Basico',
-            'modalidad': 'Teorico',
-            'puntaje': 4,
-            'solucion_completa': 'Para verificar linealidad, comprobar superposicion. Para invariancia, verificar que y(t-t0) = T[x(t-t0)].',
-            'respuesta_final': 'Solo (a) es LTI, (b) no es lineal, (c) no es lineal'
-        }
-    ]
-
-def test_pdf_generator():
-    """Función para probar el generador"""
-    print("🚀 Testing PDF Generator V2.0 - Versión Final Funcionando")
+# Test de integración
+def test_real_templates():
+    """Test usando templates reales"""
+    print("🧪 TESTING PDF GENERATOR V3.0 - TEMPLATES REALES")
     print("=" * 60)
     
-    # Verificar LaTeX
     try:
-        result = subprocess.run(['pdflatex', '--version'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            print("✅ LaTeX encontrado y funcionando")
-        else:
-            print("⚠️  LaTeX encontrado pero con problemas")
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        print("❌ LaTeX NO encontrado")
-        print("💡 Instalar con: brew install --cask mactex")
-        return False
-    
-    generator = ExercisePDFGenerator("test_output")
-    
-    # Información de prueba (sin acentos para evitar problemas)
-    exam_info = {
-        'nombre': 'Interrogacion 1 - Senales y Sistemas',
-        'profesor': 'Patricio de la Cuadra',
-        'semestre': '2024-2',
-        'fecha': '15 de Septiembre, 2024',
-        'tiempo_total': 90
-    }
-    
-    # Información de tarea
-    tarea_info = {
-        'numero': 1,
-        'fecha_entrega': '25 de septiembre',
-        'hora_entrega': '23:59 hrs',
-        'semestre': '2024-2'
-    }
-    
-    # Ejercicios de ejemplo
-    exercises = create_sample_exercises()
-    
-    try:
-        print("\n📝 Generando PDF de Interrogación...")
-        pdf_path, solutions_path = generator.generate_exam_pdf(exercises, exam_info)
-        print(f"✅ PDF generado: {pdf_path}")
-        if solutions_path:
-            print(f"✅ Soluciones generadas: {solutions_path}")
+        generator = RealTemplatePDFGenerator("output", "templates")
         
-        print("\n📋 Generando PDF de Tarea separada...")
-        teoricos = [ex for ex in exercises if ex['modalidad'] == 'Teorico']
-        implementacion = [ex for ex in exercises if ex['modalidad'] == 'Computacional']
+        # Ejercicios de prueba
+        exercises = [
+            {
+                'titulo': 'Convolución básica',
+                'enunciado': 'Calcule la convolución y(t) = x(t) * h(t) donde x(t) = u(t) y h(t) = e^{-t}u(t).',
+                'unidad_tematica': 'Sistemas Continuos',
+                'nivel_dificultad': 'Básico',
+                'modalidad': 'Teórico',
+                'tiempo_estimado': 15,
+                'puntos': 6,
+                'solucion_completa': 'y(t) = (1 - e^{-t})u(t)'
+            },
+            {
+                'titulo': 'FFT en Python',
+                'enunciado': 'Implemente el cálculo de la FFT de una señal sinusoidal con ruido.',
+                'unidad_tematica': 'Transformada de Fourier Discreta',
+                'nivel_dificultad': 'Intermedio',
+                'modalidad': 'Computacional',
+                'tiempo_estimado': 30,
+                'puntos': 4,
+                'codigo_python': 'import numpy as np\nimport matplotlib.pyplot as plt\n# Completar implementación',
+                'solucion_completa': 'La FFT muestra picos en las frecuencias de las sinusoidales.'
+            }
+        ]
         
-        pdf_tarea = generator.generate_tarea_pdf(teoricos, implementacion, tarea_info)
-        print(f"✅ Tarea generada: {pdf_tarea}")
-        
-        print("\n📚 Generando Guía de ejercicios...")
-        guia_info = {
-            'nombre': 'Guia de Ejercicios - Convolucion',
-            'profesor': 'Patricio de la Cuadra',
-            'semestre': '2024-2'
+        # Test 1: Guía
+        print("\n1️⃣ Generando guía...")
+        guide_info = {
+            'nombre': 'Guía 1 - Sistemas Continuos',
+            'unidad': 'Sistemas Continuos',
+            'descripcion': 'Ejercicios de práctica para convolución y respuesta al impulso.'
         }
+        guide_path = generator.generate_guia(exercises, guide_info)
+        print(f"✅ Guía generada: {guide_path}")
         
-        pdf_guia = generator.generate_exercise_sheet(exercises, guia_info)
-        print(f"✅ Guía generada: {pdf_guia}")
+        # Test 2: Prueba
+        print("\n2️⃣ Generando prueba...")
+        exam_info = {
+            'nombre': 'Interrogación 1 - Sistemas Continuos',
+            'fecha': '15 de Septiembre, 2024',
+            'tiempo_total': 90
+        }
+        exam_path, sol_path = generator.generate_prueba(exercises, exam_info)
+        print(f"✅ Prueba generada: {exam_path}")
+        print(f"✅ Soluciones generadas: {sol_path}")
         
-        print("\n" + "=" * 60)
-        print("🎉 ¡Todos los PDFs generados exitosamente!")
-        print(f"\n📁 Archivos creados en 'test_output/':")
+        # Test 3: Tarea
+        print("\n3️⃣ Generando tarea...")
+        task_info = {
+            'numero': 1,
+            'fecha_entrega': '30 de Septiembre',
+            'hora_entrega': '23:59 hrs'
+        }
+        task_path = generator.generate_tarea(exercises, task_info)
+        print(f"✅ Tarea generada: {task_path}")
         
-        # Listar archivos generados
-        if os.path.exists("test_output"):
-            files = [f for f in os.listdir("test_output") if f.endswith('.pdf')]
-            for file in sorted(files):
-                if os.path.exists(os.path.join("test_output", file)):
-                    size = os.path.getsize(os.path.join("test_output", file))
-                    print(f"   • {file} ({size//1024}KB)")
-        
-        print("\n🔧 Sistema completamente funcional:")
-        print("   ✓ Fix geometry para evitar conflictos")
-        print("   ✓ Manejo de warnings de LaTeX")
-        print("   ✓ Compilación robusta")
-        print("   ✓ UTF-8 y caracteres especiales")
-        print("   ✓ Separación teórico/implementación")
-        print("   ✓ Soluciones condicionales")
-        
-        print("\n📋 Listo para integración:")
-        print("   1. ✅ Reemplazar tu pdf_generator.py actual")
-        print("   2. ✅ Usar las nuevas funciones en app.py")
-        print("   3. ✅ Agregar logos PUC si quieres")
-        
+        print("\n🎉 ¡TODOS LOS TESTS EXITOSOS!")
+        print("📁 PDFs generados usando templates reales existentes")
         return True
         
     except Exception as e:
-        print(f"❌ Error: {e}")
-        print(f"   Tipo: {type(e).__name__}")
-        
-        # Debugging adicional
-        if "codec" in str(e).lower():
-            print("   💡 Problema de codificación - revisar caracteres especiales")
-        elif "permission" in str(e).lower():
-            print("   💡 Problema de permisos - verificar directorio de salida")
-        elif "pdflatex" in str(e).lower():
-            print("   💡 Problema de LaTeX - verificar instalación")
-        
+        print(f"\n❌ ERROR: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 if __name__ == "__main__":
-    test_pdf_generator()
+    test_real_templates()
