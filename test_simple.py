@@ -1,333 +1,234 @@
-#!/usr/bin/env python3
 """
-Test simplificado para el parser LaTeX - específico para formato de Patricio
+Test standalone del PDF Generator
+Verifica que el generador de PDFs funcione correctamente antes de integrarlo con la GUI
 """
 
 import sys
 import os
+from pathlib import Path
 
-# Agregar el directorio padre al path para importar módulos
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Agregar el directorio raíz al path para importar módulos
+sys.path.append(str(Path(__file__).parent))
 
-from utils.latex_parser import LaTeXExerciseParser
+from generators.pdf_generator import ExercisePDFGenerator, create_sample_exercises
+from datetime import datetime
 
-def test_patricio_format():
-    """Prueba específica con el formato de Patricio"""
-    print("🧪 Probando parser con formato de Patricio...")
+def test_pdf_generation():
+    """Test completo del generador de PDFs"""
+    print("🧪 INICIANDO TESTS DEL PDF GENERATOR")
     print("=" * 50)
     
-    # Contenido de ejemplo basado en el archivo real
-    patricio_sample = """
-    \\subsection*{Números complejos}
-
-    \\begin{enumerate}
-
-        \\item Se tiene el número complejo $2z = 1 +i\\sqrt{3}$ y $2w = \\sqrt{2}-i\\sqrt{2}$ ahora calcule usando la forma polar:
-        \\begin{enumerate}
-            \\item $z\\cdot w$
-            \\item $z/w$
-        \\end{enumerate}
-        \\ifanswers
-        {\\color{red} \\textbf{Solución:} \\textit{Resuelta en ayudantía}}
-        \\fi
-        
-        \\item Demuestre que para todo $z \\in \\mathbb{C}$ se cumple que:
-        \\ifanswers
-        {\\color{red}\\textbf{Solución:} 
-        Tomamos un complejo cualquiera $z = \\sigma + j \\omega$
-        }
-        \\fi
-
-    \\end{enumerate}
-
-    \\subsection*{Señales y Sistemas}
-
-    \\begin{enumerate}
-
-        \\item Considere las señales de entrada y determine la salida del sistema.
-        
-        \\ifanswers
-        {\\color{red} \\textbf{Solución:}
-        Las señales se pueden descomponer como exponenciales complejas...
-        }
-        \\fi
-
-        \\item Determine si el sistema es causal y estable.
-
-        \\ifanswers
-        {\\color{red} \\textbf{Solución:}
-        El sistema es causal porque... y estable porque...
-        }
-        \\fi
-
-    \\end{enumerate}
-
-    \\subsection*{Sistemas Lineales y Convolución}
-
-    \\begin{enumerate}
-
-        \\item Calcule la convolución de las siguientes señales:
-        $$h(t) = e^{-2t}u(t)$$
-        $$x(t) = \\delta(t-1)$$
-
-        \\ifanswers
-        {\\color{red} \\textbf{Solución:}
-        La convolución resulta en $y(t) = e^{-2(t-1)}u(t-1)$
-        }
-        \\fi
-
-    \\end{enumerate}
-    """
-    
-    # Crear parser
-    parser = LaTeXExerciseParser()
-    
-    # Parsear contenido
+    # 1. Crear generador
+    print("\n1️⃣ Creando generador...")
     try:
-        exercises = parser.parse_content(patricio_sample, "guia_patricio_test.tex")
-        
-        print(f"✅ Ejercicios encontrados: {len(exercises)}")
-        print()
-        
-        # Mostrar cada ejercicio
-        for i, exercise in enumerate(exercises, 1):
-            print(f"📝 Ejercicio {i}:")
-            print(f"   📍 Título: {exercise.get('titulo', 'Sin título')}")
-            print(f"   🎯 Unidad: {exercise.get('unidad_tematica', 'No especificada')}")
-            print(f"   📊 Dificultad: {exercise.get('nivel_dificultad', 'No especificada')}")
-            print(f"   💻 Modalidad: {exercise.get('modalidad', 'No especificada')}")
-            print(f"   ⏱️  Tiempo: {exercise.get('tiempo_estimado', 'No especificado')} min")
-            print(f"   🔧 Patrón: {exercise.get('pattern_used', 'No especificado')}")
-            
-            # Mostrar enunciado (primeros 150 caracteres)
-            enunciado = exercise.get('enunciado', 'Sin enunciado')
-            print(f"   📄 Enunciado: {enunciado[:150]}{'...' if len(enunciado) > 150 else ''}")
-            
-            # Verificar si tiene solución
-            solucion = exercise.get('solucion_completa', '')
-            if solucion:
-                print(f"   ✅ Solución: {solucion[:100]}{'...' if len(solucion) > 100 else ''}")
-            else:
-                print(f"   ❌ Sin solución detectada")
-            
-            # Palabras clave
-            keywords = exercise.get('palabras_clave', [])
-            if keywords:
-                print(f"   🏷️  Keywords: {', '.join(keywords)}")
-            
-            print("-" * 50)
-        
-        # Estadísticas rápidas
-        if exercises:
-            print("📊 Estadísticas:")
-            
-            # Por unidad
-            unidades = {}
-            for ex in exercises:
-                unidad = ex.get('unidad_tematica', 'Sin clasificar')
-                unidades[unidad] = unidades.get(unidad, 0) + 1
-            
-            print("   Por unidad temática:")
-            for unidad, count in unidades.items():
-                print(f"     • {unidad}: {count}")
-            
-            # Por dificultad  
-            dificultades = {}
-            for ex in exercises:
-                dif = ex.get('nivel_dificultad', 'Sin clasificar')
-                dificultades[dif] = dificultades.get(dif, 0) + 1
-            
-            print("   Por dificultad:")
-            for dif, count in dificultades.items():
-                print(f"     • {dif}: {count}")
-            
-            # Promedio de tiempo
-            tiempos = [ex.get('tiempo_estimado', 0) for ex in exercises if ex.get('tiempo_estimado')]
-            if tiempos:
-                promedio = sum(tiempos) / len(tiempos)
-                print(f"   Tiempo promedio: {promedio:.1f} minutos")
-    
+        generator = ExercisePDFGenerator("test_output")
+        print("✅ Generador creado exitosamente")
+        print(f"   📁 Directorio de salida: {generator.output_dir}")
     except Exception as e:
-        print(f"❌ Error durante el parseo: {str(e)}")
-        import traceback
-        traceback.print_exc()
-
-def test_with_real_file():
-    """Test con archivo real si está disponible"""
-    print("\\n🧪 Buscando archivo LaTeX real...")
+        print(f"❌ Error creando generador: {e}")
+        return False
     
-    # Buscar archivos .tex en el directorio actual
-    tex_files = []
-    for file in os.listdir('.'):
-        if file.endswith('.tex'):
-            tex_files.append(file)
+    # 2. Preparar datos de prueba
+    print("\n2️⃣ Preparando datos de prueba...")
     
-    if tex_files:
-        print(f"📁 Archivos .tex encontrados: {', '.join(tex_files)}")
+    # Información de la prueba
+    exam_info = {
+        'nombre': 'TEST - Interrogación 1 - Señales y Sistemas',
+        'profesor': 'Patricio de la Cuadra',
+        'semestre': '2024-2',
+        'fecha': datetime.now().strftime("%d de %B, %Y"),
+        'tiempo_total': 90,
+        'instrucciones': [
+            "Esta es una prueba del sistema de generación de PDFs.",
+            "Verifique que todos los elementos se muestren correctamente.",
+            "Los ejercicios son de ejemplo para testing."
+        ]
+    }
+    
+    # Ejercicios de prueba (usando los del generator + algunos adicionales)
+    exercises = create_sample_exercises()
+    
+    # Agregar un ejercicio adicional más específico del curso
+    exercises.append({
+        'titulo': 'Transformada de Laplace',
+        'enunciado': 'Determine la transformada de Laplace de la señal x(t) = e^(-2t)u(t) donde u(t) es la función escalón unitario.',
+        'datos_entrada': 'x(t) = e^(-2t)u(t), donde a = 2',
+        'tiempo_estimado': 15,
+        'nivel_dificultad': 'Básico',
+        'modalidad': 'Teórico',
+        'solucion_completa': 'Aplicando la definición: X(s) = ∫₀^∞ e^(-2t)e^(-st)dt = 1/(s+2) para Re{s} > -2',
+        'respuesta_final': 'X(s) = 1/(s+2), Re{s} > -2'
+    })
+    
+    print(f"✅ Datos preparados:")
+    print(f"   📋 {len(exercises)} ejercicios de prueba")
+    print(f"   📄 Información del examen: {exam_info['nombre']}")
+    
+    # 3. Test: Generar LaTeX source
+    print("\n3️⃣ Generando código LaTeX...")
+    try:
+        latex_path = generator.generate_latex_source(exercises, exam_info, "test_exam_source")
+        print(f"✅ Código LaTeX generado: {latex_path}")
         
-        # Usar el primer archivo encontrado
-        filename = tex_files[0]
-        print(f"📖 Probando con: {filename}")
+        # Verificar que el archivo existe
+        if os.path.exists(latex_path):
+            file_size = os.path.getsize(latex_path)
+            print(f"   📊 Tamaño del archivo: {file_size} bytes")
+        else:
+            print("⚠️  Archivo LaTeX no encontrado")
+            
+    except Exception as e:
+        print(f"❌ Error generando LaTeX: {e}")
+        return False
+    
+    # 4. Test: Generar PDF completo
+    print("\n4️⃣ Generando PDF completo...")
+    try:
+        # PDF sin soluciones
+        pdf_result = generator.generate_exam_pdf(
+            exercises, 
+            exam_info, 
+            include_solutions=False,
+            filename="test_exam_complete"
+        )
         
-        try:
-            parser = LaTeXExerciseParser()
-            exercises = parser.parse_file(filename)
+        # El resultado puede ser una tupla (pdf_path, solutions_path) o solo pdf_path
+        if isinstance(pdf_result, tuple):
+            pdf_path, solutions_path = pdf_result
+            print(f"✅ PDF principal generado: {pdf_path}")
+            print(f"✅ PDF con soluciones generado: {solutions_path}")
             
-            print(f"✅ Resultado: {len(exercises)} ejercicios extraídos de {filename}")
+            # Verificar archivos
+            for path in [pdf_path, solutions_path]:
+                if os.path.exists(path):
+                    size = os.path.getsize(path)
+                    print(f"   📊 {os.path.basename(path)}: {size} bytes")
+                else:
+                    print(f"⚠️  Archivo no encontrado: {path}")
+        else:
+            pdf_path = pdf_result
+            print(f"✅ PDF generado: {pdf_path}")
             
-            # Mostrar solo los primeros 3 para no saturar
-            for i, ex in enumerate(exercises[:3], 1):
-                print(f"  {i}. {ex.get('titulo', 'Sin título')} [{ex.get('unidad_tematica', 'Sin unidad')}]")
-            
-            if len(exercises) > 3:
-                print(f"  ... y {len(exercises) - 3} ejercicios más")
+            if os.path.exists(pdf_path):
+                size = os.path.getsize(pdf_path)
+                print(f"   📊 Tamaño: {size} bytes")
                 
-        except Exception as e:
-            print(f"❌ Error leyendo {filename}: {str(e)}")
-    else:
-        print("❌ No se encontraron archivos .tex en el directorio actual")
-
-def test_with_document_content():
-    """Test usando el contenido real del documento de Patricio"""
-    print("\n🧪 Probando con fragmento del documento real...")
+    except Exception as e:
+        print(f"❌ Error generando PDF: {e}")
+        print(f"   💡 Posibles causas:")
+        print(f"      - LaTeX no está instalado")
+        print(f"      - Faltan paquetes LaTeX necesarios")
+        print(f"      - Problemas con caracteres especiales")
+        return False
+    
+    # 5. Test: Generar guía de ejercicios
+    print("\n5️⃣ Generando guía de ejercicios...")
+    try:
+        sheet_info = {
+            'nombre': 'TEST - Guía de Ejercicios - Señales y Sistemas',
+            'profesor': 'Patricio de la Cuadra',
+            'semestre': '2024-2'
+        }
+        
+        guide_path = generator.generate_exercise_sheet(
+            exercises, 
+            sheet_info,
+            filename="test_exercise_guide"
+        )
+        
+        print(f"✅ Guía generada: {guide_path}")
+        
+        if os.path.exists(guide_path):
+            size = os.path.getsize(guide_path)
+            print(f"   📊 Tamaño: {size} bytes")
+            
+    except Exception as e:
+        print(f"❌ Error generando guía: {e}")
+        return False
+    
+    # 6. Resumen final
+    print("\n" + "=" * 50)
+    print("🎉 RESUMEN DE TESTS")
     print("=" * 50)
     
-    # Fragmento real del documento que subiste
-    real_content = """
-    \\subsection*{Números complejos}
-
-    \\begin{enumerate}
-
-        \\item Se tiene el número complejo $2z = 1 +i\\sqrt{3}$ y $2w = \\sqrt{2}-i\\sqrt{2}$ ahora calcule usando la forma polar:
-        \\begin{enumerate}
-            \\item $z\\cdot w$
-            \\item $z/w$
-            \\item $zz^{*},\\frac{1}{2} (z + z^{*}), \\frac{1}{2i} (z - z^{*})$
-            \\item Magnitud y fase de $(z\\cdot w)^{*}$
-        \\end{enumerate}
-        \\ifanswers
-        {\\color{red} \\textbf{Solución:} \\textit{Resuelta en ayudantía}}
-        \\fi
+    # Listar archivos generados
+    output_dir = Path("test_output")
+    if output_dir.exists():
+        files = list(output_dir.glob("test_*"))
+        print(f"📁 Archivos generados en {output_dir}:")
+        for file in files:
+            size = file.stat().st_size
+            print(f"   📄 {file.name} ({size} bytes)")
         
-        \\item Demuestre que para todo $z \\in \\mathbb{C}$  se cumple que:
-        \\begin{itemize}
-            \\item $\\Re{\\{z\\}} = \\frac{z + z^*}{2}$
-            \\item $j\\Im{\\{z\\}}  = \\frac{z-z^*}{2}$
-        \\end{itemize}
+        if len(files) >= 3:  # LaTeX + PDF + Guide mínimo
+            print("✅ Todos los tests PASARON")
+            print("🚀 PDF Generator está FUNCIONANDO correctamente")
+            return True
+        else:
+            print("⚠️  Algunos archivos no se generaron")
+            return False
+    else:
+        print("❌ Directorio de salida no creado")
+        return False
 
-        \\ifanswers
-        {\\color{red}\\textbf{Solución:} 
-        
-        Tomamos un complejo cualquiera $z = \\sigma + j \\omega$\\\\
-        $z + z^* = \\sigma + j\\omega + \\sigma -j\\omega = 2\\sigma $
-        $\\frac{z + z^*}{2} = \\sigma$
-        Similarmente:
-        $z-z^* = \\sigma +j\\omega - \\sigma + j\\omega = 2j\\omega$
-        $\\frac{z - z^*}{2} = j \\omega$}
-        \\fi
-
-    \\end{enumerate}
-
-    \\subsection*{Señales y Sistemas}
-
-    \\begin{enumerate}
-
-        \\item Considere las señales de entrada
-        \\begin{align*}
-            x(t) &= \\cos\\left(\\frac{2\\pi t}{3}\\right) + 2 \\sin\\left(\\frac{16 \\pi t}{3}\\right) \\\\
-            y(t) &= \\sin(\\pi t)
-        \\end{align*}
-            El sistema se modela por la relación $z(t)=x(t)y(t)$, donde $z(t)$ es la señal salida.
-      
-
-        \\ifanswers
-        {\\color{red}  \\textbf{Solución:}
-
-        Las señales $x(t)$ e $y(t)$ se pueden descomponer como una suma de exponenciales complejas, lo que lleva a
-        \\begin{align*}
-            x(t) &= \\frac{1}{2} e^{j(2\\pi t/3)} + \\frac{1}{2} e^{-2\\pi t/3}+\\frac{e^{16\\pi t/3}}{j}-\\frac{e^{-16\\pi t /3}}{j}
-        \\end{align*}}
-        \\fi
-
-    \\end{enumerate}
-    """
+def check_latex_installation():
+    """Verifica si LaTeX está instalado y disponible"""
+    print("\n🔍 VERIFICANDO INSTALACIÓN DE LATEX")
+    print("-" * 40)
     
-    # Crear parser
-    parser = LaTeXExerciseParser()
+    import subprocess
     
-    try:
-        exercises = parser.parse_content(real_content, "documento_real.tex")
-        
-        print(f"✅ Ejercicios encontrados: {len(exercises)}")
-        print()
-        
-        # Mostrar cada ejercicio con más detalle
-        for i, exercise in enumerate(exercises, 1):
-            print(f"📝 EJERCICIO {i}:")
-            print(f"   📍 Título: {exercise.get('titulo', 'Sin título')}")
-            print(f"   🎯 Unidad: {exercise.get('unidad_tematica', 'No clasificada')}")
-            print(f"   📊 Dificultad: {exercise.get('nivel_dificultad', 'No especificada')}")
-            print(f"   💻 Modalidad: {exercise.get('modalidad', 'No especificada')}")
-            print(f"   ⏱️  Tiempo: {exercise.get('tiempo_estimado', 0)} min")
-            print(f"   🔧 Patrón: {exercise.get('pattern_used', 'No especificado')}")
-            
-            # Enunciado limpio
-            enunciado = exercise.get('enunciado', 'Sin enunciado')
-            print(f"   📄 ENUNCIADO:")
-            print(f"      {enunciado[:200]}{'...' if len(enunciado) > 200 else ''}")
-            
-            # Solución 
-            solucion = exercise.get('solucion_completa', '')
-            if solucion and solucion.strip():
-                print(f"   ✅ SOLUCIÓN DETECTADA:")
-                print(f"      {solucion[:150]}{'...' if len(solucion) > 150 else ''}")
-            else:
-                print(f"   ❌ SIN SOLUCIÓN DETECTADA")
-                # Debug: mostrar contenido raw para ver qué pasa
-                raw = exercise.get('raw_content', '')
-                if '\\ifanswers' in raw:
-                    print(f"   🔍 DEBUG: Se detectó \\ifanswers en el contenido raw")
-                    # Mostrar la parte de ifanswers
-                    import re
-                    ifanswers_match = re.search(r'\\ifanswers.*?\\fi', raw, re.DOTALL)
-                    if ifanswers_match:
-                        print(f"      Contenido ifanswers: {ifanswers_match.group(0)[:100]}...")
-            
-            # Palabras clave
-            keywords = exercise.get('palabras_clave', [])
-            if keywords:
-                print(f"   🏷️  Keywords: {', '.join(keywords)}")
-            
-            print("=" * 50)
-        
-    except Exception as e:
-        print(f"❌ Error durante el parseo: {str(e)}")
-        import traceback
-        traceback.print_exc()
+    latex_commands = ['pdflatex', 'xelatex', 'lualatex']
+    
+    for cmd in latex_commands:
+        try:
+            result = subprocess.run([cmd, '--version'], 
+                                  capture_output=True, 
+                                  text=True, 
+                                  timeout=10)
+            if result.returncode == 0:
+                print(f"✅ {cmd} está disponible")
+                # Mostrar primera línea de la versión
+                first_line = result.stdout.split('\n')[0]
+                print(f"   📋 {first_line}")
+                return True
+        except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+            print(f"❌ {cmd} no encontrado")
+    
+    print("\n💡 SOLUCIÓN:")
+    print("   Para instalar LaTeX:")
+    print("   • macOS: brew install --cask mactex")
+    print("   • Ubuntu: sudo apt-get install texlive-full")
+    print("   • Windows: Instalar MiKTeX o TeX Live")
+    
+    return False
 
 def main():
     """Función principal"""
-    print("🚀 Test Mejorado del Parser LaTeX")
-    print("🎓 Especializado para formato de Patricio de la Cuadra - PUC")  
-    print("=" * 60)
+    print("🚀 TEST STANDALONE - PDF GENERATOR")
+    print("Proyecto: DB_Ejercicios")
+    print("Fecha:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     
-    # Test principal con contenido de ejemplo
-    test_patricio_format()
+    # Verificar LaTeX primero
+    if not check_latex_installation():
+        print("\n⚠️  LaTeX no está disponible.")
+        print("   Los PDFs no se podrán generar, pero el código LaTeX sí.")
+        print("   ¿Continuar solo con generación de código LaTeX? (y/n)")
+        
+        # Para automatizar el test, asumimos que sí
+        print("   Continuando con test limitado...")
     
-    # Test con contenido real del documento
-    test_with_document_content()
+    # Ejecutar tests
+    success = test_pdf_generation()
     
-    # Test con archivo real si existe
-    test_with_real_file()
+    if success:
+        print("\n🎉 CONCLUSIÓN: PDF Generator está LISTO para integración con GUI")
+        print("💡 Próximo paso: Integrar con app.py")
+    else:
+        print("\n❌ CONCLUSIÓN: Hay problemas que resolver antes de integrar")
+        print("💡 Revisa los errores arriba y corrígelos primero")
     
-    print("\n" + "=" * 60)
-    print("✅ Tests completados!")
-    print("\n💡 Análisis:")
-    print("   - Si ve 'SIN SOLUCIÓN DETECTADA', necesitamos ajustar los patrones regex")
-    print("   - Si las unidades son 'Por determinar', mejoraremos el mapeo")
-    print("   - Si todo se ve bien, procedemos con Streamlit")
-    print("\n🔧 Para usar:")
-    print("   streamlit run app.py → 'Importar LaTeX' → subir archivo completo")
+    return success
 
 if __name__ == "__main__":
     main()

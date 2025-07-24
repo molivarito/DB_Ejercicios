@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-07-23T15:59:22.363908",
+  "test_results": {
+    "latex_parser": false,
+    "database_manager": false,
+    "integration_workflow": false,
+    "error_handling": false,
+    "performance": false
+  },
+  "summary": {
+    "passed": 0,
+    "total": 5,
+    "success_rate": 0.0
+  }
+}
