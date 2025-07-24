@@ -1,0 +1,586 @@
+\documentclass[11pt]{article}
+
+% ========== CONFIGURACIÓN BÁSICA ==========
+\usepackage[letterpaper, margin=2cm]{geometry}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% ========== PACKAGES MATEMÁTICOS ==========
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{mathtools}
+
+% ========== PACKAGES GRÁFICOS ==========
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{placeins}
+
+% ========== PACKAGES FORMATO ==========
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage{multicol}
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable,skins}
+
+% ========== PACKAGES ESPECÍFICOS SEÑALES ==========
+\usepackage{circuitikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% ========== COLORES PUC ==========
+\definecolor{pucblue}{RGB}{0, 56, 101}
+\definecolor{pucgold}{RGB}{198, 146, 20}
+\definecolor{pucgray}{RGB}{88, 89, 91}
+\definecolor{lightblue}{RGB}{230, 242, 255}
+\definecolor{lightgreen}{RGB}{232, 245, 233}
+\definecolor{practicecolor}{RGB}{76, 175, 80}
+
+% ========== CONFIGURACIÓN DE PÁGINA ==========
+\setlength{\headheight}{50pt}
+\setlength{\headsep}{15pt}
+\setlength{\footskip}{25pt}
+
+% ========== HEADER Y FOOTER ==========
+\pagestyle{fancy}
+\fancyhf{}
+
+% Header simplificado para guías
+\fancyhead[L]{%
+  \begin{minipage}{0.15\textwidth}
+    \includegraphics[width=1.5cm]{logo-uc.pdf}
+  \end{minipage}%
+  \begin{minipage}{0.85\textwidth}
+    \small\color{pucblue}
+    \textbf{Pontificia Universidad Católica de Chile}\\
+    \textbf{IEE2103 - Señales y Sistemas}
+  \end{minipage}
+}
+
+% Footer
+\fancyfoot[L]{\color{pucgray}\small Guía de Ejercicios}
+\fancyfoot[C]{\color{pucgray}\small Página \thepage}
+\fancyfoot[R]{\color{pucgray}\small Prof. Patricio de la Cuadra}
+
+% ========== COMANDOS PERSONALIZADOS ==========
+% Funciones especiales de señales (mismas que en prueba)
+\newlength{\widthfontline}
+\setlength{\widthfontline}{0.12ex}
+\newcommand{\step}{\mbox{\rule{0.3ex}{0cm}%
+                        \rule{\widthfontline}{1.0ex}%
+                        \hspace{-\widthfontline}%
+                        \rule[1.0ex]{1.5ex}{\widthfontline}}}
+\newcommand{\shah}{\mbox{\rule{0.3ex}{0cm}%
+                        \rule{\widthfontline}{1.5ex}%
+                        \rule{0.7ex}{\widthfontline}%
+                        \rule{\widthfontline}{1.5ex}%
+                        \rule{0.7ex}{\widthfontline}%
+                        \rule{\widthfontline}{1.5ex}%
+                        \hspace{\widthfontline}}}
+\newcommand{\triang}{\wedge}
+\newcommand{\sqcap}{\sqcap}
+
+% ========== COMANDOS PARA CONFIGURACIÓN ==========
+\newcommand{\configurarguia}[6]{
+  \newcommand{\tituloGuia}{#1}
+  \newcommand{\unidadGuia}{#2}
+  \newcommand{\fechaGuia}{#3}
+  \newcommand{\profesorGuia}{#4}
+  \newcommand{\semestreGuia}{#5}
+  \newcommand{\descripcionGuia}{#6}
+}
+
+% ========== COMANDO PARA TÍTULO DE GUÍA ==========
+\newcommand{\tituloGuiaPrincipal}{%
+  \begin{center}
+    % Título principal
+    \begin{tcolorbox}[
+      enhanced,
+      colback=practicecolor,
+      coltext=white,
+      boxrule=0pt,
+      rounded corners=12pt,
+      center title,
+      fonttitle=\LARGE\bfseries,
+      title=\tituloGuia,
+      drop shadow
+    ]
+    \end{tcolorbox}
+    
+    \vspace{0.4cm}
+    
+    % Información de la guía
+    \begin{tcolorbox}[
+      colback=lightgreen,
+      colframe=practicecolor,
+      boxrule=1.5pt,
+      rounded corners=8pt,
+      center
+    ]
+      \begin{tabularx}{0.9\textwidth}{@{}X@{\hspace{1cm}}X@{}}
+        \textbf{Unidad:} \unidadGuia & \textbf{Fecha:} \fechaGuia \\[0.2cm]
+        \textbf{Profesor:} \profesorGuia & \textbf{Semestre:} \semestreGuia \\
+      \end{tabularx}
+      
+      \vspace{0.3cm}
+      
+      \textit{\descripcionGuia}
+    \end{tcolorbox}
+    
+    \vspace{0.3cm}
+    
+    % Línea divisoria
+    \textcolor{practicecolor}{\rule{\textwidth}{1.5pt}}
+  \end{center}
+  
+  \vspace{0.5cm}
+}
+
+% ========== COMANDOS PARA DIFICULTAD ==========
+\newcommand{\basico}{%
+  \begin{tikzpicture}[baseline=(current bounding box.center)]
+    \node[draw=green!70!black, fill=green!20, rounded corners=3pt, 
+          inner sep=2pt, minimum width=1.5cm] {\small\textbf{Básico}};
+  \end{tikzpicture}%
+}
+
+\newcommand{\intermedio}{%
+  \begin{tikzpicture}[baseline=(current bounding box.center)]
+    \node[draw=orange!70!black, fill=orange!20, rounded corners=3pt, 
+          inner sep=2pt, minimum width=1.5cm] {\small\textbf{Intermedio}};
+  \end{tikzpicture}%
+}
+
+\newcommand{\avanzado}{%
+  \begin{tikzpicture}[baseline=(current bounding box.center)]
+    \node[draw=red!70!black, fill=red!20, rounded corners=3pt, 
+          inner sep=2pt, minimum width=1.5cm] {\small\textbf{Avanzado}};
+  \end{tikzpicture}%
+}
+
+\newcommand{\desafio}{%
+  \begin{tikzpicture}[baseline=(current bounding box.center)]
+    \node[draw=purple!70!black, fill=purple!20, rounded corners=3pt, 
+          inner sep=2pt, minimum width=1.5cm] {\small\textbf{Desafío}};
+  \end{tikzpicture}%
+}
+
+% ========== ENTORNO PARA EJERCICIOS ==========
+\newcounter{ejercicio}
+\newenvironment{ejercicio}[3][]{%
+  \stepcounter{ejercicio}
+  \vspace{0.6cm}
+  \noindent
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=practicecolor,
+    boxrule=1pt,
+    rounded corners=5pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt
+  ]
+  \textbf{\color{practicecolor}Ejercicio \theejercicio} 
+  \ifx&#1&\else\textbf{ - #1}\fi
+  \hfill 
+  \textbf{Tiempo:} #2 min \quad #3
+  
+  \vspace{0.3cm}
+}{%
+  \end{tcolorbox}
+}
+
+% ========== ENTORNOS PARA SECCIONES TEMÁTICAS ==========
+\newenvironment{unidadintro}{%
+  \begin{tcolorbox}[
+    enhanced,
+    colback=blue!5,
+    colframe=pucblue,
+    boxrule=1.5pt,
+    rounded corners=8pt,
+    title={\textbf{📚 Introducción}},
+    fonttitle=\bfseries\color{pucblue}
+  ]
+}{%
+  \end{tcolorbox}
+  \vspace{0.5cm}
+}
+
+\newenvironment{unidadconceptos}{%
+  \begin{tcolorbox}[
+    enhanced,
+    colback=green!5,
+    colframe=green!70!black,
+    boxrule=1.5pt,
+    rounded corners=8pt,
+    title={\textbf{🔑 Conceptos Clave}},
+    fonttitle=\bfseries\color{green!70!black}
+  ]
+}{%
+  \end{tcolorbox}
+  \vspace{0.5cm}
+}
+
+\newenvironment{unidadformulas}{%
+  \begin{tcolorbox}[
+    enhanced,
+    colback=orange!5,
+    colframe=orange!70!black,
+    boxrule=1.5pt,
+    rounded corners=8pt,
+    title={\textbf{📐 Fórmulas Importantes}},
+    fonttitle=\bfseries\color{orange!70!black}
+  ]
+}{%
+  \end{tcolorbox}
+  \vspace{0.5cm}
+}
+
+% ========== COMANDO PARA HINTS Y TIPS ==========
+\newcommand{\tip}[1]{%
+  \begin{tcolorbox}[
+    colback=yellow!10,
+    colframe=orange,
+    boxrule=1pt,
+    rounded corners=3pt,
+    left=8pt,
+    right=8pt,
+    top=5pt,
+    bottom=5pt
+  ]
+  \textbf{💡 TIP:} #1
+  \end{tcolorbox}
+}
+
+\newcommand{\atencion}[1]{%
+  \begin{tcolorbox}[
+    colback=red!10,
+    colframe=red,
+    boxrule=1pt,
+    rounded corners=3pt,
+    left=8pt,
+    right=8pt,
+    top=5pt,
+    bottom=5pt
+  ]
+  \textbf{⚠️ ATENCIÓN:} #1
+  \end{tcolorbox}
+}
+
+% ========== ENTORNO PARA SOLUCIONES ==========
+\newif\ifsoluciones
+% \solucionestrue  % Descomentar para mostrar soluciones
+
+\newenvironment{solucion}{%
+  \ifsoluciones
+    \vspace{0.3cm}
+    \begin{tcolorbox}[
+      enhanced,
+      breakable,
+      colback=green!5,
+      colframe=green!70!black,
+      boxrule=1pt,
+      rounded corners=5pt,
+      left=8pt,
+      right=8pt,
+      top=8pt,
+      bottom=8pt,
+      title={\textbf{\color{green!70!black}✅ SOLUCIÓN}},
+      fonttitle=\bfseries
+    ]
+  \fi
+}{%
+  \ifsoluciones
+    \end{tcolorbox}
+  \fi
+}
+
+% ========== COMANDOS PARA ESPACIOS DE TRABAJO ==========
+\newcommand{\espaciotrabajo}[1][5cm]{\vspace{#1}}
+
+% ========== ENTORNO PARA GRUPOS DE EJERCICIOS ==========
+\newenvironment{grupoejercicio}[2]{%
+  \vspace{0.8cm}
+  \begin{tcolorbox}[
+    enhanced,
+    colback=pucblue!5,
+    colframe=pucblue,
+    boxrule=2pt,
+    rounded corners=8pt,
+    title={\textbf{#1}},
+    fonttitle=\Large\bfseries\color{pucblue}
+  ]
+  \textit{#2}
+  \end{tcolorbox}
+  \vspace{0.3cm}
+}{%
+  \vspace{0.5cm}
+}
+
+% ========== COMANDO PARA OBJETIVOS DE APRENDIZAJE ==========
+\newcommand{\objetivos}[1]{%
+  \begin{tcolorbox}[
+    enhanced,
+    colback=pucgold!10,
+    colframe=pucgold,
+    boxrule=1.5pt,
+    rounded corners=8pt,
+    title={\textbf{🎯 OBJETIVOS DE APRENDIZAJE}},
+    fonttitle=\bfseries\color{pucgold}
+  ]
+  \begin{itemize}[leftmargin=20pt, itemsep=5pt]
+    #1
+  \end{itemize}
+  \end{tcolorbox}
+  \vspace{0.5cm}
+}
+
+% ========== INICIO DEL DOCUMENTO ==========
+\begin{document}
+
+% ========== CONFIGURAR ESTA GUÍA ==========
+\configurarguia{
+  Guía de Ejercicios - Convolución y Sistemas LTI  % Título
+}{
+  Unidad 2: Sistemas Continuos  % Unidad
+}{
+  Septiembre 2024  % Fecha
+}{
+  Patricio de la Cuadra  % Profesor
+}{
+  2024-2  % Semestre
+}{
+  Ejercicios de práctica para dominar los conceptos de convolución, respuesta al impulso y análisis de sistemas LTI continuos.  % Descripción
+}
+
+% ========== TÍTULO PRINCIPAL ==========
+\tituloGuiaPrincipal
+
+% ========== OBJETIVOS DE APRENDIZAJE ==========
+\objetivos{
+  \item Aplicar la operación de convolución tanto gráfica como analíticamente
+  \item Determinar la respuesta al impulso de sistemas LTI
+  \item Analizar propiedades de sistemas: linealidad, invariancia temporal, causalidad
+  \item Resolver problemas de sistemas descritos por ecuaciones diferenciales
+  \item Interpretar físicamente el comportamiento de sistemas LTI
+}
+
+% ========== CONCEPTOS CLAVE ==========
+\begin{unidadconceptos}
+  \textbf{Sistemas LTI:} Sistemas que cumplen con las propiedades de \textit{linealidad} e \textit{invariancia temporal}.
+  
+  \textbf{Convolución:} Operación matemática que describe la salida de un sistema LTI: $y(t) = x(t) * h(t) = \int_{-\infty}^{\infty} x(\tau)h(t-\tau)d\tau$
+  
+  \textbf{Respuesta al impulso:} Salida del sistema cuando la entrada es un impulso $\delta(t)$.
+\end{unidadconceptos}
+
+% ========== FÓRMULAS IMPORTANTES ==========
+\begin{unidadformulas}
+  \begin{align}
+    \text{Convolución: } y(t) &= \int_{-\infty}^{\infty} x(\tau)h(t-\tau)d\tau \\
+    \text{Propiedades: } x(t) * h(t) &= h(t) * x(t) \text{ (conmutativa)} \\
+    x(t) * [\delta(t-t_0)] &= x(t-t_0) \text{ (propiedad del impulso)} \\
+    \frac{d}{dt}[x(t) * h(t)] &= \frac{dx(t)}{dt} * h(t) = x(t) * \frac{dh(t)}{dt}
+  \end{align}
+\end{unidadformulas}
+
+% ========== GRUPO 1: EJERCICIOS BÁSICOS ==========
+\begin{grupoejercicio}{Propiedades de Sistemas LTI}{Ejercicios fundamentales para verificar linealidad e invariancia temporal}
+
+\begin{ejercicio}[Verificación de propiedades]{15}{\basico}
+  Determine si los siguientes sistemas son lineales y/o invariantes en el tiempo:
+  
+  \begin{enumerate}[label=\alph*)]
+    \item $y(t) = 2x(t) + 3$
+    \item $y(t) = x^2(t)$
+    \item $y(t) = \cos(t) \cdot x(t)$
+    \item $y(t) = x(2t)$
+  \end{enumerate}
+  
+  \tip{Para verificar linealidad, compruebe que $T[ax_1(t) + bx_2(t)] = aT[x_1(t)] + bT[x_2(t)]$}
+  
+  \espaciotrabajo[6cm]
+  
+  \begin{solucion}
+    \begin{enumerate}[label=\alph*)]
+      \item \textbf{No lineal} (término constante), \textbf{Invariante}
+      \item \textbf{No lineal} (cuadrático), \textbf{Invariante}
+      \item \textbf{Lineal}, \textbf{No invariante} (coeficiente depende del tiempo)
+      \item \textbf{Lineal}, \textbf{No invariante} (escalamiento temporal)
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Respuesta al escalón]{20}{\intermedio}
+  Un sistema LTI tiene respuesta al impulso $h(t) = e^{-2t}u(t)$. Encuentre:
+  
+  \begin{enumerate}[label=\alph*)]
+    \item La respuesta al escalón unitario $s(t) = u(t) * h(t)$
+    \item La respuesta a la entrada $x(t) = e^{-t}u(t)$
+  \end{enumerate}
+  
+  \espaciotrabajo[8cm]
+  
+  \begin{solucion}
+    \begin{enumerate}[label=\alph*)]
+      \item $s(t) = u(t) * e^{-2t}u(t) = \int_0^t e^{-2\tau}d\tau = \frac{1-e^{-2t}}{2}u(t)$
+      \item $y(t) = e^{-t}u(t) * e^{-2t}u(t) = (e^{-t} - e^{-2t})u(t)$
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\end{grupoejercicio}
+
+% ========== GRUPO 2: CONVOLUCIÓN GRÁFICA ==========
+\begin{grupoejercicio}{Convolución Gráfica}{Desarrollo de intuición visual para la operación de convolución}
+
+\begin{ejercicio}[Convolución de pulsos rectangulares]{25}{\intermedio}
+  Dadas las señales:
+  \begin{align}
+    x(t) &= \begin{cases} 1 & 0 \leq t \leq 2 \\ 0 & \text{otro caso} \end{cases} \\
+    h(t) &= \begin{cases} 1 & 0 \leq t \leq 1 \\ 0 & \text{otro caso} \end{cases}
+  \end{align}
+  
+  \begin{enumerate}[label=\alph*)]
+    \item Grafique $x(t)$ y $h(t)$
+    \item Grafique $h(-\tau)$ y $h(t-\tau)$ para $t = 0.5, 1.5, 2.5$
+    \item Calcule y grafique $y(t) = x(t) * h(t)$
+  \end{enumerate}
+  
+  \espaciotrabajo[10cm]
+  
+  \begin{solucion}
+    La convolución resulta en:
+    $y(t) = \begin{cases}
+      0 & t < 0 \\
+      t & 0 \leq t \leq 1 \\
+      1 & 1 < t \leq 2 \\
+      3-t & 2 < t \leq 3 \\
+      0 & t > 3
+    \end{cases}$
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Convolución con exponencial]{30}{\avanzado}
+  Calcule analíticamente la convolución $y(t) = x(t) * h(t)$ donde:
+  \begin{align}
+    x(t) &= e^{-t}u(t) \\
+    h(t) &= \delta(t) + 2\delta(t-1)
+  \end{align}
+  
+  \tip{Use la propiedad del impulso: $x(t) * \delta(t-t_0) = x(t-t_0)$}
+  
+  \espaciotrabajo[6cm]
+  
+  \begin{solucion}
+    $y(t) = e^{-t}u(t) + 2e^{-(t-1)}u(t-1) = e^{-t}u(t) + 2e \cdot e^{-t}u(t-1)$
+  \end{solucion}
+\end{ejercicio}
+
+\end{grupoejercicio}
+
+% ========== GRUPO 3: SISTEMAS Y ECUACIONES DIFERENCIALES ==========
+\begin{grupoejercicio}{Sistemas y Ecuaciones Diferenciales}{Análisis de sistemas descritos por ecuaciones diferenciales}
+
+\begin{ejercicio}[Sistema RC]{35}{\avanzado}
+  Un circuito RC tiene la ecuación diferencial:
+  $RC\frac{dy(t)}{dt} + y(t) = x(t)$
+  
+  \begin{enumerate}[label=\alph*)]
+    \item Encuentre la respuesta al impulso $h(t)$
+    \item Si $x(t) = u(t)$, encuentre $y(t)$ usando convolución
+    \item Verifique el resultado resolviendo directamente la ecuación diferencial
+  \end{enumerate}
+  
+  \atencion{Recuerde las condiciones iniciales en reposo para sistemas causales}
+  
+  \espaciotrabajo[10cm]
+  
+  \begin{solucion}
+    \begin{enumerate}[label=\alph*)]
+      \item $h(t) = \frac{1}{RC}e^{-t/(RC)}u(t)$
+      \item $y(t) = (1 - e^{-t/(RC)})u(t)$
+      \item El resultado coincide usando condiciones iniciales en reposo
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Sistema masa-resorte-amortiguador]{40}{\desafio}
+  Un sistema mecánico se describe por:
+  $\frac{d^2y(t)}{dt^2} + 3\frac{dy(t)}{dt} + 2y(t) = x(t)$
+  
+  \begin{enumerate}[label=\alph*)]
+    \item Encuentre las raíces características
+    \item Determine la respuesta al impulso
+    \item ¿El sistema es estable? Justifique
+  \end{enumerate}
+  
+  \espaciotrabajo[8cm]
+  
+  \begin{solucion}
+    \begin{enumerate}[label=\alph*)]
+      \item Raíces: $s_1 = -1$, $s_2 = -2$
+      \item $h(t) = (2e^{-t} - e^{-2t})u(t)$
+      \item Estable (todas las raíces tienen parte real negativa)
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\end{grupoejercicio}
+
+% ========== PROBLEMAS DESAFÍO ==========
+\begin{grupoejercicio}{Problemas Desafío}{Para estudiantes que buscan un reto adicional}
+
+\begin{ejercicio}[Convolución con funciones especiales]{45}{\desafio}
+  Calcule la convolución:
+  $\int_{-\infty}^{\infty} \text{sinc}(t-\tau) \cdot \text{rect}(\tau) d\tau$
+  
+  donde $\text{sinc}(t) = \frac{\sin(\pi t)}{\pi t}$ y $\text{rect}(t) = \begin{cases} 1 & |t| \leq 1/2 \\ 0 & |t| > 1/2 \end{cases}$
+  
+  \tip{Considere usar propiedades de la transformada de Fourier si las conoce}
+  
+  \espaciotrabajo[8cm]
+\end{ejercicio}
+
+\end{grupoejercicio}
+
+% ========== RECURSOS ADICIONALES ==========
+\begin{tcolorbox}[
+  enhanced,
+  colback=pucblue!5,
+  colframe=pucblue,
+  boxrule=1.5pt,
+  rounded corners=8pt,
+  title={\textbf{📖 RECURSOS ADICIONALES}},
+  fonttitle=\bfseries\color{pucblue}
+]
+\begin{itemize}
+  \item \textbf{Libro texto:} "Señales y Sistemas: Fundamentos Matemáticos", Pablo Alvarado Moya, Cap. 3-4
+  \item \textbf{Simulaciones:} Use MATLAB/Python para visualizar convoluciones
+  \item \textbf{Videos:} Revise las grabaciones de clases en Canvas
+  \item \textbf{Ayudantías:} Asista a las sesiones de resolución de ejercicios
+\end{itemize}
+\end{tcolorbox}
+
+% ========== PIE DE PÁGINA ==========
+\vfill
+\begin{center}
+  \begin{tikzpicture}
+    \draw[practicecolor, line width=1.5pt] (0,0) -- (\textwidth,0);
+  \end{tikzpicture}
+  \vspace{0.3cm}
+  
+  \textcolor{pucgray}{\large ¡Practica hace al maestro!}\\
+  \textcolor{pucgray}{\small Consulta en ayudantías o Discord si tienes dudas}
+\end{center}
+
+\end{document}

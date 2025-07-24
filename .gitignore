@@ -20,7 +20,6 @@ database/ejercicios.db
 # Archivos generados
 output/
 *.pdf
-*.tex
 *.aux
 *.log
 *.fls

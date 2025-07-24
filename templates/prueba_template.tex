@@ -1,0 +1,378 @@
+\documentclass[11pt]{article}
+
+% ========== CONFIGURACIÓN BÁSICA ==========
+\usepackage[letterpaper, margin=2cm]{geometry}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% ========== PACKAGES MATEMÁTICOS ==========
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{mathtools}
+
+% ========== PACKAGES GRÁFICOS ==========
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{placeins}
+
+% ========== PACKAGES FORMATO ==========
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage[none]{hyphenat}
+
+% ========== PACKAGES ESPECÍFICOS SEÑALES ==========
+\usepackage{circuitikz}  % Para diagramas de circuitos
+\usepackage{pgfplots}    % Para gráficos de señales
+\pgfplotsset{compat=1.18}
+
+% ========== COLORES PUC ==========
+\definecolor{pucblue}{RGB}{0, 56, 101}
+\definecolor{pucgold}{RGB}{198, 146, 20}
+\definecolor{pucgray}{RGB}{88, 89, 91}
+\definecolor{lightblue}{RGB}{230, 242, 255}
+\definecolor{answerred}{RGB}{220, 50, 47}
+
+% ========== CONFIGURACIÓN DE PÁGINA ==========
+\setlength{\headheight}{60pt}
+\setlength{\headsep}{20pt}
+\setlength{\footskip}{30pt}
+
+% ========== HEADER Y FOOTER ==========
+\pagestyle{fancy}
+\fancyhf{}
+
+% Header
+\fancyhead[L]{%
+  \begin{minipage}{0.15\textwidth}
+    \includegraphics[width=1.8cm]{logo-uc.pdf}
+  \end{minipage}%
+  \begin{minipage}{0.85\textwidth}
+    \small\color{pucblue}
+    \textbf{Pontificia Universidad Católica de Chile}\\
+    Escuela de Ingeniería\\
+    Departamento de Ingeniería Eléctrica\\
+    \textbf{IEE2103 - Señales y Sistemas}
+  \end{minipage}
+}
+
+% Footer
+\fancyfoot[C]{\color{pucgray}\small Página \thepage}
+\fancyfoot[R]{\color{pucgray}\small Prof. Patricio de la Cuadra}
+
+% ========== COMANDOS PERSONALIZADOS ==========
+% Funciones especiales de señales
+\newlength{\widthfontline}
+\setlength{\widthfontline}{0.12ex}
+\newcommand{\step}{\mbox{\rule{0.3ex}{0cm}%
+                        \rule{\widthfontline}{1.0ex}%
+                        \hspace{-\widthfontline}%
+                        \rule[1.0ex]{1.5ex}{\widthfontline}}}
+\newcommand{\shah}{\mbox{\rule{0.3ex}{0cm}%
+                        \rule{\widthfontline}{1.5ex}%
+                        \rule{0.7ex}{\widthfontline}%
+                        \rule{\widthfontline}{1.5ex}%
+                        \rule{0.7ex}{\widthfontline}%
+                        \rule{\widthfontline}{1.5ex}%
+                        \hspace{\widthfontline}}}
+\newcommand{\triang}{\wedge}
+\newcommand{\sqcap}{\sqcap}
+
+% Comando para espacios de respuesta
+\newcommand{\respuesta}[1][4cm]{\vspace{#1}}
+
+% Comando para recuadros de puntos
+\newcommand{\puntos}[1]{%
+  \begin{tikzpicture}[baseline=(current bounding box.center)]
+    \node[draw=pucblue, fill=lightblue, rounded corners=3pt, 
+          inner sep=3pt, minimum width=1.5cm] {\textbf{#1 pts}};
+  \end{tikzpicture}%
+}
+
+% ========== CONFIGURACIÓN DE SECCIONES ==========
+\titleformat{\section}[hang]
+{\Large\bfseries\color{pucblue}}
+{\thesection.}{0.5em}{}
+[\vspace{0.2cm}\titlerule[0.8pt]]
+
+\titleformat{\subsection}[hang]
+{\large\bfseries\color{pucblue}}
+{\thesubsection.}{0.5em}{}
+
+% ========== ENTORNOS PERSONALIZADOS ==========
+% Entorno para instrucciones
+\newenvironment{instrucciones}{%
+  \begin{tcolorbox}[
+    colback=lightblue,
+    colframe=pucblue,
+    boxrule=1pt,
+    rounded corners=5pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt
+  ]
+  \textbf{\color{pucblue}INSTRUCCIONES:}
+  \begin{enumerate}[leftmargin=20pt]
+}{%
+  \end{enumerate}
+  \end{tcolorbox}
+}
+
+% Para usar tcolorbox
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable}
+
+% ========== INFORMACIÓN DE LA PRUEBA ==========
+\newcommand{\configurarprueba}[7]{
+  \newcommand{\nombrePrueba}{#1}
+  \newcommand{\fechaPrueba}{#2}
+  \newcommand{\tiempoPrueba}{#3}
+  \newcommand{\profesorPrueba}{#4}
+  \newcommand{\semestrePrueba}{#5}
+  \newcommand{\totalPuntos}{#6}
+  \newcommand{\instruccionesPrueba}{#7}
+}
+
+% ========== COMANDO PRINCIPAL ==========
+\newcommand{\tituloPrueba}{%
+  \begin{center}
+    % Título principal
+    \begin{tcolorbox}[
+      colback=pucblue,
+      coltext=white,
+      boxrule=0pt,
+      rounded corners=8pt,
+      center title,
+      fonttitle=\Large\bfseries,
+      title=\nombrePrueba
+    ]
+    \end{tcolorbox}
+    
+    \vspace{0.5cm}
+    
+    % Información de la prueba
+    \begin{tabularx}{\textwidth}{@{}X@{\hspace{2cm}}X@{}}
+      \textbf{Fecha:} \fechaPrueba & \textbf{Tiempo:} \tiempoPrueba \\
+      \textbf{Profesor:} \profesorPrueba & \textbf{Semestre:} \semestrePrueba \\
+      \multicolumn{2}{c}{\textbf{Puntaje Total:} \totalPuntos puntos}
+    \end{tabularx}
+    
+    \vspace{0.3cm}
+    
+    % Línea divisoria
+    \textcolor{pucblue}{\rule{\textwidth}{1.5pt}}
+  \end{center}
+  
+  \vspace{0.5cm}
+}
+
+% ========== ENTORNO PARA EJERCICIOS ==========
+\newcounter{ejercicio}
+\newenvironment{ejercicio}[2][]{%
+  \stepcounter{ejercicio}
+  \vspace{0.8cm}
+  \noindent
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=pucblue,
+    boxrule=1.5pt,
+    rounded corners=5pt,
+    attach boxed title to top left={xshift=10pt, yshift=-5pt},
+    boxed title style={
+      colback=pucblue,
+      coltext=white,
+      rounded corners=3pt,
+      boxrule=0pt
+    },
+    title={\textbf{Ejercicio \theejercicio} \ifx&#1&\else - #1\fi \hfill \puntos{#2}}
+  ]
+}{%
+  \end{tcolorbox}
+}
+
+% ========== ESPACIOS PARA DATOS ESTUDIANTE ==========
+\newcommand{\datosEstudiante}{%
+  \begin{center}
+    \begin{tabularx}{0.8\textwidth}{|X|X|}
+      \hline
+      \textbf{Nombre:} \rule{6cm}{0.4pt} & \textbf{RUT:} \rule{4cm}{0.4pt} \\[0.5cm]
+      \hline
+      \textbf{Sección:} \rule{2cm}{0.4pt} & \textbf{Nota:} \rule{2cm}{0.4pt} \\[0.5cm]
+      \hline
+    \end{tabularx}
+  \end{center}
+  \vspace{0.5cm}
+}
+
+% ========== COMANDO PARA SOLUCIONES ==========
+\newif\ifsoluciones
+% \solucionestrue  % Descomentar para mostrar soluciones
+
+\newenvironment{solucion}{%
+  \ifsoluciones
+    \begin{tcolorbox}[
+      colback=red!5,
+      colframe=answerred,
+      boxrule=1pt,
+      rounded corners=3pt,
+      left=5pt,
+      right=5pt,
+      top=5pt,
+      bottom=5pt,
+      breakable
+    ]
+    \textbf{\color{answerred}SOLUCIÓN:}\\
+  \fi
+}{%
+  \ifsoluciones
+    \end{tcolorbox}
+  \fi
+}
+
+% ========== INICIO DEL DOCUMENTO ==========
+\begin{document}
+
+% ========== CONFIGURAR ESTA PRUEBA ==========
+\configurarprueba{
+  Interrogación 1  % Nombre
+}{
+  15 de Septiembre, 2024  % Fecha
+}{
+  90 minutos  % Tiempo
+}{
+  Patricio de la Cuadra  % Profesor
+}{
+  2024-2  % Semestre
+}{
+  42  % Puntaje total
+}{
+  % Instrucciones (se definen abajo)
+}
+
+% ========== TÍTULO Y DATOS ==========
+\tituloPrueba
+
+\datosEstudiante
+
+% ========== INSTRUCCIONES ==========
+\begin{instrucciones}
+  \item Está permitido usar como máximo \textbf{dos carillas} de apuntes manuscritos.
+  \item Responda cada pregunta en \textbf{hojas separadas}, utilizando solamente lápiz de tinta.
+  \item \textbf{Coloque su nombre y RUT} en todas las hojas que ocupe. ¡Hágalo ahora!
+  \item Las hojas sin nombre \textbf{NO serán corregidas}.
+  \item No se permiten consultas de \textbf{NINGÚN tipo}.
+  \item Si considera que falta información, haga una suposición razonable y \textbf{exprésela claramente}.
+  \item Muestre \textbf{claramente todos los pasos} de desarrollo.
+\end{instrucciones}
+
+% ========== EJERCICIOS ==========
+
+\begin{ejercicio}[Manipulación de señales complejas]{6}
+  Dada la señal $x(t)=\sqrt{2}(1+j)e^{j\pi/4}e^{(-1+j2\pi)t}$:
+  
+  \begin{enumerate}[label=\alph*)]
+    \item Bosqueje Re$\{x(t)\}$
+    \respuesta[2.5cm]
+    
+    \item Bosqueje Im$\{x(t)\}$
+    \respuesta[2.5cm]
+    
+    \item Bosqueje $x(t+2)+x^*(t+2)$
+    \respuesta[3cm]
+  \end{enumerate}
+  
+  \textbf{Parte 2:} Muestre que:
+  \[(1-e^{j\alpha})=2\sin\left(\frac{\alpha}{2}\right)e^{j[(\alpha-\pi)/2]}\]
+  
+  \respuesta[3cm]
+  
+  \begin{solucion}
+    Para la parte (a), primero simplificamos la expresión...
+    [Solución completa aquí]
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Propiedades de sistemas LTI]{6}
+  Determine si los siguientes sistemas son \textbf{lineales} y/o \textbf{invariantes en el tiempo}:
+  
+  \begin{enumerate}[label=\alph*)]
+    \item $y(t)=\int_{0}^{t}x(\tau) d\tau$
+    \respuesta[2.5cm]
+    
+    \item $y(t)=x(t)+t$
+    \respuesta[2.5cm]
+    
+    \item $y(t)=1/x(t)$
+    \respuesta[3cm]
+  \end{enumerate}
+  
+  \begin{solucion}
+    Para cada sistema, verificamos linealidad probando...
+    [Solución completa aquí]
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Integral con funciones especiales]{6}
+  Resuelva la siguiente integral:
+  \[\int_{-\infty}^{\infty} \shah(kx) \triang(x) dx, \quad k>0\]
+  
+  \respuesta[8cm]
+  
+  \begin{solucion}
+    Utilizando la propiedad del cedazo...
+    [Solución completa aquí]
+  \end{solucion}
+\end{ejercicio}
+
+\newpage
+
+\begin{ejercicio}[Sistema LTI causal]{6}
+  Un sistema LTI causal responde con $y(t)$ a una entrada $x(t)$:
+  \[x(t)=u(t+\frac{1}{2})-u(t-\frac{1}{2})\]
+  \[y(t)=x(2t+\frac{1}{2})(2t+1)+x(2t-\frac{1}{2})(1-2t)\]
+  
+  \begin{enumerate}[label=\alph*)]
+    \item Grafique las funciones $x(t)$ e $y(t)$
+    \respuesta[4cm]
+    
+    \item ¿Cuál es la respuesta del sistema a la entrada $x_2(t)=x(\frac{t-1}{2})$?
+    \respuesta[3cm]
+    
+    \item ¿Cuál es la respuesta $y_3(t)$ al escalón unitario $u(t)$?
+    \respuesta[3cm]
+  \end{enumerate}
+\end{ejercicio}
+
+\begin{ejercicio}[Convolución gráfica]{6}
+  Dadas las funciones $h(t)=3e^{-3t}u(t)$ y $f(t)=2(u(t)-u(t-1))$:
+  
+  Encuentre la convolución entre $h(t)$ y $f(t)$ \textbf{gráfica y analíticamente}.
+  
+  \respuesta[10cm]
+\end{ejercicio}
+
+\begin{ejercicio}[Identificación de convoluciones]{6}
+  \textbf{[Incluir las figuras proporcionadas]}
+  
+  Indique cuáles de las funciones dadas deben ser convolucionadas para obtener las funciones mostradas en las figuras de salida.
+  
+  \respuesta[6cm]
+\end{ejercicio}
+
+% ========== PIE DE PÁGINA FINAL ==========
+\vfill
+\begin{center}
+  \textcolor{pucgray}{\rule{0.5\textwidth}{0.5pt}}\\
+  \small\textcolor{pucgray}{¡Éxito en su evaluación!}
+\end{center}
+
+\end{document}

@@ -1,0 +1,686 @@
+\documentclass[letterpaper, 12pt]{article}
+
+% ========== CONFIGURACIÓN BÁSICA ==========
+\usepackage[letterpaper, margin=2.5cm]{geometry}
+\usepackage[spanish, es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% ========== PACKAGES MATEMÁTICOS ==========
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{mathtools}
+\usepackage{mathabx}
+
+% ========== PACKAGES GRÁFICOS ==========
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{placeins}
+
+% ========== PACKAGES FORMATO ==========
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable,skins}
+
+% ========== PACKAGES ESPECÍFICOS ==========
+\usepackage{listings}  % Para código Python
+\usepackage{minted}    % Alternativa para código con syntax highlighting
+
+% ========== COLORES PUC ==========
+\definecolor{pucblue}{RGB}{0, 56, 101}
+\definecolor{pucgold}{RGB}{198, 146, 20}
+\definecolor{pucgray}{RGB}{88, 89, 91}
+\definecolor{lightblue}{RGB}{230, 242, 255}
+\definecolor{answerred}{RGB}{220, 50, 47}
+\definecolor{theoreticalcolor}{RGB}{46, 125, 50}
+\definecolor{implementationcolor}{RGB}{156, 39, 176}
+
+% ========== CONFIGURACIÓN HYPERREF ==========
+\hypersetup{
+    colorlinks=true,
+    linkcolor=pucblue,
+    filecolor=pucblue,      
+    urlcolor=pucblue,
+    citecolor=pucblue,
+    pdftitle={Tarea IEE2103 - Señales y Sistemas},
+    pdfauthor={Patricio de la Cuadra - PUC},
+    pdfsubject={Señales y Sistemas},
+    pdfkeywords={Señales, Sistemas, PUC, Ingeniería},
+    pdfpagemode=UseOutlines,
+}
+
+% ========== CONFIGURACIÓN DE PÁGINA ==========
+\setlength{\headheight}{70pt}
+\setlength{\headsep}{25pt}
+\setlength{\footskip}{30pt}
+
+% ========== HEADER Y FOOTER ==========
+\pagestyle{fancy}
+\fancyhf{}
+
+% Header más elegante
+\fancyhead[L]{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=north west] at (current page.north west) {
+      \begin{tcolorbox}[
+        width=\paperwidth,
+        height=2cm,
+        colback=white,
+        colframe=pucblue,
+        boxrule=2pt,
+        sharp corners,
+        left=2cm,
+        right=2cm,
+        top=0.3cm,
+        bottom=0.3cm
+      ]
+        \begin{minipage}{0.12\textwidth}
+          \includegraphics[width=1.8cm]{logo_uc_medio.jpg}
+        \end{minipage}%
+        \begin{minipage}{0.88\textwidth}
+          \color{pucblue}
+          \textbf{\Large Pontificia Universidad Católica de Chile}\\
+          \textbf{Escuela de Ingeniería $\bullet$ Departamento de Ingeniería Eléctrica}\\
+          \textbf{IEE2103 – Señales y Sistemas}
+        \end{minipage}
+      \end{tcolorbox}
+    };
+  \end{tikzpicture}
+}
+
+% Footer
+\fancyfoot[L]{\color{pucgray}\small IEE2103 - Señales y Sistemas}
+\fancyfoot[C]{\color{pucgray}\small Página \thepage}
+\fancyfoot[R]{\color{pucgray}\small Prof. Patricio de la Cuadra}
+
+% ========== COMANDOS PARA INFORMACIÓN ==========
+\newcommand{\configurartarea}[6]{
+  \newcommand{\numeroTarea}{#1}
+  \newcommand{\fechaEntrega}{#2}
+  \newcommand{\horaEntrega}{#3}
+  \newcommand{\semestreTarea}{#4}
+  \newcommand{\profesorTarea}{#5}
+  \newcommand{\puntajeTarea}{#6}
+}
+
+% ========== COMANDO PARA TÍTULO ==========
+\newcommand{\tituloTarea}{%
+  \vspace{2.5cm}
+  \begin{center}
+    % Título principal con gradiente visual
+    \begin{tcolorbox}[
+      enhanced,
+      colback=pucblue,
+      coltext=white,
+      boxrule=0pt,
+      rounded corners=15pt,
+      shadow={2mm}{-2mm}{0mm}{gray!50},
+      center title,
+      fonttitle=\Huge\bfseries,
+      title=Tarea \numeroTarea
+    ]
+    \end{tcolorbox}
+    
+    \vspace{0.8cm}
+    
+    % Información de entrega destacada
+    \begin{tcolorbox}[
+      colback=pucgold!20,
+      colframe=pucgold,
+      boxrule=2pt,
+      rounded corners=10pt,
+      center,
+      fonttitle=\Large\bfseries,
+      title={\textcolor{pucgold}{📅 INFORMACIÓN DE ENTREGA}}
+    ]
+      \begin{tabularx}{0.8\textwidth}{@{}X@{\hspace{1cm}}X@{}}
+        \textbf{\Large Fecha límite:} & \textbf{\Large \fechaEntrega} \\[0.3cm]
+        \textbf{\Large Hora límite:} & \textbf{\Large \horaEntrega} \\[0.3cm]
+        \textbf{\Large Puntaje total:} & \textbf{\Large \puntajeTarea\ puntos} \\
+      \end{tabularx}
+    \end{tcolorbox}
+    
+    \vspace{0.5cm}
+    
+    % Línea divisoria elegante
+    \begin{tikzpicture}
+      \draw[pucblue, line width=2pt] (0,0) -- (\textwidth,0);
+      \draw[pucgold, line width=1pt] (0,0.1) -- (\textwidth,0.1);
+    \end{tikzpicture}
+  \end{center}
+  
+  \vspace{1cm}
+}
+
+% ========== COMANDOS PARA PUNTOS ==========
+\newcommand{\puntos}[1]{%
+  \begin{tikzpicture}[baseline=(current bounding box.center)]
+    \node[draw=pucblue, fill=lightblue, rounded corners=5pt, 
+          inner sep=4pt, minimum width=2cm] {\textbf{[#1 puntos]}};
+  \end{tikzpicture}%
+}
+
+% ========== ENTORNO PARA INSTRUCCIONES ==========
+\newenvironment{instrucciones}{%
+  \begin{tcolorbox}[
+    enhanced,
+    colback=lightblue,
+    colframe=pucblue,
+    boxrule=2pt,
+    rounded corners=8pt,
+    left=15pt,
+    right=15pt,
+    top=12pt,
+    bottom=12pt,
+    drop shadow,
+    title={\textbf{\Large 📋 INSTRUCCIONES GENERALES}},
+    fonttitle=\bfseries\color{pucblue}
+  ]
+  \begin{enumerate}[leftmargin=25pt, itemsep=8pt]
+}{%
+  \end{enumerate}
+  \end{tcolorbox}
+}
+
+% ========== ENTORNOS PARA SECCIONES ==========
+\newenvironment{ejerciciosteoricos}{%
+  \newpage
+  \begin{tcolorbox}[
+    enhanced,
+    colback=theoreticalcolor!10,
+    colframe=theoreticalcolor,
+    boxrule=2pt,
+    rounded corners=10pt,
+    center title,
+    fonttitle=\Large\bfseries,
+    title={\textcolor{theoreticalcolor}{📚 EJERCICIOS TEÓRICOS}},
+    attach boxed title to top center={yshift=-5pt},
+    boxed title style={
+      colback=theoreticalcolor,
+      coltext=white,
+      rounded corners=5pt,
+      boxrule=0pt
+    }
+  ]
+  \end{tcolorbox}
+  \vspace{0.5cm}
+  \begin{enumerate}[leftmargin=20pt, itemsep=15pt]
+}{%
+  \end{enumerate}
+}
+
+\newenvironment{ejerciciosimplementacion}{%
+  \newpage
+  \begin{tcolorbox}[
+    enhanced,
+    colback=implementationcolor!10,
+    colframe=implementationcolor,
+    boxrule=2pt,
+    rounded corners=10pt,
+    center title,
+    fonttitle=\Large\bfseries,
+    title={\textcolor{implementationcolor}{💻 EJERCICIOS DE IMPLEMENTACIÓN}},
+    attach boxed title to top center={yshift=-5pt},
+    boxed title style={
+      colback=implementationcolor,
+      coltext=white,
+      rounded corners=5pt,
+      boxrule=0pt
+    }
+  ]
+  \end{tcolorbox}
+  \vspace{0.5cm}
+  \begin{enumerate}[leftmargin=20pt, itemsep=15pt]
+}{%
+  \end{enumerate}
+}
+
+% ========== ENTORNO PARA EJERCICIOS INDIVIDUALES ==========
+\newenvironment{ejercicio}[2][]{%
+  \item \textbf{#1} \hfill \puntos{#2}
+  \vspace{0.3cm}
+  
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=pucgray,
+    boxrule=1pt,
+    rounded corners=5pt,
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt
+  ]
+}{%
+  \end{tcolorbox}
+  \vspace{0.5cm}
+}
+
+% ========== ENTORNO PARA CÓDIGO PYTHON ==========
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{pucblue}\bfseries,
+  commentstyle=\color{pucgray}\itshape,
+  stringstyle=\color{pucgold},
+  numberstyle=\tiny\color{pucgray},
+  numbers=left,
+  numbersep=5pt,
+  frame=single,
+  frameround=tttt,
+  rulecolor=\color{pucgray},
+  backgroundcolor=\color{gray!5},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2
+}
+
+\newenvironment{codigo}{%
+  \begin{tcolorbox}[
+    colback=gray!5,
+    colframe=pucgray,
+    rounded corners=5pt,
+    title={\textbf{Código Python}},
+    fonttitle=\bfseries
+  ]
+  \begin{lstlisting}
+}{%
+  \end{lstlisting}
+  \end{tcolorbox}
+}
+
+% ========== COMANDO PARA HINTS ==========
+\newcommand{\hint}[1]{%
+  \begin{tcolorbox}[
+    colback=yellow!10,
+    colframe=orange,
+    boxrule=1pt,
+    rounded corners=3pt,
+    left=8pt,
+    right=8pt,
+    top=5pt,
+    bottom=5pt
+  ]
+  \textbf{💡 HINT:} #1
+  \end{tcolorbox}
+}
+
+% ========== SOLUCIONES CONDICIONALES ==========
+\newif\ifanswers
+% \answerstrue  % Descomentar para mostrar soluciones
+
+\newenvironment{solucion}{%
+  \ifanswers
+    \begin{tcolorbox}[
+      enhanced,
+      breakable,
+      colback=answerred!5,
+      colframe=answerred,
+      boxrule=1.5pt,
+      rounded corners=5pt,
+      left=8pt,
+      right=8pt,
+      top=8pt,
+      bottom=8pt,
+      title={\textbf{\color{answerred}✓ SOLUCIÓN}},
+      fonttitle=\bfseries
+    ]
+  \fi
+}{%
+  \ifanswers
+    \end{tcolorbox}
+  \fi
+}
+
+% ========== COMANDO PARA FIGURAS MEJORADAS ==========
+\newcommand{\figura}[4][0.6]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#1\textwidth]{#2}
+    \caption{#3}
+    \label{#4}
+  \end{figure}
+}
+
+% ========== INICIO DEL DOCUMENTO ==========
+\begin{document}
+
+% ========== CONFIGURAR ESTA TAREA ==========
+\configurartarea{
+  1  % Número de tarea
+}{
+  25 de septiembre  % Fecha de entrega
+}{
+  23:59 hrs  % Hora de entrega
+}{
+  2024-2  % Semestre
+}{
+  Patricio de la Cuadra  % Profesor
+}{
+  10  % Puntaje total
+}
+
+% ========== TÍTULO ==========
+\tituloTarea
+
+% ========== INSTRUCCIONES GENERALES ==========
+\begin{instrucciones}
+  \item Para la parte de implementación, debe adjuntar un \textbf{código desarrollado en Python}.
+  
+  \item Deben entregar un PDF con el desarrollo llamado \texttt{\textit{Apellido}\_Tarea1.pdf} (donde \textit{Apellido} es su apellido).
+  
+  \item La tarea es \textbf{individual}, pero pueden comentar las preguntas con sus compañeros.
+  
+  \item Cada eje de los gráficos debe incluir un \textbf{nombre descriptivo} y su \textbf{respectiva unidad}.
+  
+  \item Está permitido consultar apuntes, libros o cualquier material bibliográfico físico o electrónico (Internet).
+  
+  \item Está permitido usar código público obtenido de Internet bajo dos condiciones: que sea \textbf{citado} y que ese código no sea justamente lo que se pide para la tarea.
+  
+  \item \textbf{No está permitido} compartir/entregar ni usar/recibir resultados, textos o códigos de programación usados para resolver la tarea.
+\end{instrucciones}
+
+% ========== EJERCICIOS TEÓRICOS ==========
+\begin{ejerciciosteoricos}
+
+\begin{ejercicio}[Resolución de problemas cortos]{2}
+  \begin{enumerate}
+    \item \puntos{0.5} Sea una función $f(x)$ cualquiera, encuentre el gráfico de $f(ax-b)$. ¿Cuál es el desplazamiento y el factor de dilatación/contracción de esta última?
+    
+    \item \puntos{0.5} Escriba la función $\text{sgn}(x)$ en función de $u(x)$ donde esta última corresponde a la función escalón.
+    
+    \item \puntos{0.5} Calcule el área de $\frac{1}{\tau}\sqcap\left(\frac{x}{\tau}\right)$.
+    
+    \item \puntos{0.5} Calcule la derivada de $\sqcap(x)$ y $u(x)$.
+  \end{enumerate}
+  
+  \begin{solucion}
+    \begin{enumerate}
+      \item Si escribimos $f(a(x-b/a))$ notamos que el desplazamiento es $b/a$ y el factor de dilatación/contracción sería $a$.
+      
+      \item Dos soluciones posibles serían: 
+      $\text{sgn}(x) = u(x)-u(-x) = 2u(x)-1$
+      
+      \item Por propiedades gráficas de las funciones la señal es un rectángulo de ancho $\tau$ y alto $1/\tau$ por lo que el área es igual a 1.
+      
+      \item El escalón presenta un salto discontinuo en el origen, por lo tanto:
+      $\frac{d u(x)}{dx} = \delta(x)$
+      El rect presenta un salto discontinuo hacia arriba en $x=-1/2$ y hacia abajo en $x= 1/2$, por lo tanto:
+      $\frac{d \sqcap(x)}{dx} = \delta(x+1/2)-\delta(x-1/2)$
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Sistema con muestreo]{2}
+  Considere el sistema con salida $y(t)$ y entrada $x(t)$:
+  $y(t) = \sum_{n = -\infty}^{+ \infty}x(t) \delta (t-nT)$
+  
+  \begin{enumerate}
+    \item Muestre si el sistema es:
+    \begin{enumerate}[i)]
+      \item \puntos{0.5} Lineal
+      \item \puntos{0.5} Invariante
+    \end{enumerate}
+    
+    \item \puntos{1} Ahora considere que la entrada del sistema es $x(t) = \cos{(2\pi t)}$ y grafíquela. Además, grafique a mano $y(t)$ para $T =1$, $T=1/2$, $T=1/4$ y $T =1/8$.
+  \end{enumerate}
+  
+  \textit{Asegúrese de que todos los gráficos tengan las mismas dimensiones en los ejes.}
+  
+  \begin{solucion}
+    \begin{enumerate}
+      \item El sistema es lineal porque
+      \begin{align*}
+          T[ax_1(t)+bx_2(t)] &= \sum_{n=-\infty}^{\infty} [ax_1(t)+bx_2(t)]\delta(t-nT) \\
+          &= a \sum_{n=-\infty}^{\infty} x_1(t) \delta(t-n T) + b \sum_{n=-\infty}^{\infty} x_2(t) \delta(t-n T) \\
+          &= a T[x_1(t)] + b T[x_2(t)]
+      \end{align*}
+      
+      \item La salida está dada por
+      \begin{align*}
+          y(t) &= \sum_{n=-\infty}^{\infty} \cos(2\pi t) \delta(t-n T)
+      \end{align*}
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Series de potencias]{2}
+  Exprese las siguientes ecuaciones como sumas infinitas de polinomios y determine para qué valores de $|x|$ la serie converge:
+  
+  \begin{enumerate}
+    \item \puntos{1} $p_1(x) = \frac{1}{1-x}$
+    \item \puntos{1} $p_2(x) = \frac{1}{(1-x)^2}$
+  \end{enumerate}
+  
+  \hint{Puede ser útil usar series de Taylor.}
+  
+  \begin{solucion}
+    \begin{enumerate}
+      \item Esta pregunta se puede resolver sencillamente sin usar series de Taylor, ya que sabemos que toda serie geométrica tiene solución dada por:
+      $\sum_{n = 0}^{+\infty}a^n=\frac{1}{1-a}$
+      Por lo tanto:
+      $p_1(x) = \frac{1}{1-x} = 1+x+x^2+x^3+x^4+...$
+      Además converge siempre con $|x|<1$.
+      
+      \item Se puede resolver mediante series de Taylor centrada en cero:
+      $p_2(x) = 1 + 2x + 3x^2+ 4x^3+5x^4+...$
+      Similarmente esto converge con $|x| <1$.
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Circuito RC como sistema LTI]{2}
+  Un circuito eléctrico se puede modelar como un sistema LTI que presenta una respuesta al impulso dada por:
+  \begin{align*}
+      h(t) &= \frac{1}{RC} e^{-\frac{1}{RC}t}u(t),
+  \end{align*}
+  donde $R$ y $C$ son parámetros del circuito. El circuito está diseñado para operar sobre una señal de entrada de la forma:
+  \begin{align*}
+      x(t) &= A\cos(k\omega_0 t),
+  \end{align*}
+  donde $\omega_0 = \frac{1}{RC}$, mientras que $A$ y $k$ son constantes arbitrarias.
+  
+  \begin{enumerate}
+    \item \puntos{0.3} Indique si el sistema es estable, causal y tiene memoria. Justifique sus respuestas.
+    
+    \item \puntos{1.5} Encuentre la salida analítica del sistema para las siguientes entradas:
+    \begin{enumerate}
+      \item $x_1(t) = A$
+      \item $x_2(t) = A\cos(0.01\omega_0 t)$
+      \item $x_3(t) = A\cos(100\omega_0 t)$
+    \end{enumerate}
+    
+    \hint{Puede ser conveniente hacer el cálculo para un caso general con frecuencia $k \omega_0$ y luego evaluar para cada caso particular.}
+    
+    \item \puntos{0.2} A partir de los resultados obtenidos, ¿cuál es el efecto que presenta el sistema sobre una sinusoide a medida que aumenta su frecuencia?
+  \end{enumerate}
+  
+  \begin{solucion}
+    \begin{enumerate}
+      \item Como $h(t) = 0$ para $t<0$, el sistema es \textbf{causal}. Es \textbf{estable} porque $\int_{-\infty}^{\infty} |h(\tau)| d\tau < \infty$. Tiene \textbf{memoria} porque la salida depende de valores pasados de la entrada.
+      
+      \item Para un caso general con $x(t)=A\cos(k\omega_0 t)$:
+      $g(t) = A \frac{\cos(k\omega_0 t)+k\sin(k\omega_0 t)}{1+k^2}$
+      
+      \item Para frecuencias mucho menores a $\omega_0$, el sistema replica la entrada. Para frecuencias mucho mayores a $\omega_0$, el sistema atenúa significativamente la señal (filtro pasa-bajas).
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\end{ejerciciosteoricos}
+
+% ========== EJERCICIOS DE IMPLEMENTACIÓN ==========
+\begin{ejerciciosimplementacion}
+
+\begin{ejercicio}[Función periódica compleja]{2}
+  Considere la función $f(t)=\sum_{n=1}^{N} \cos(2\pi\cdot n \cdot t)$.
+  
+  \begin{enumerate}
+    \item \puntos{1} Grafique la función para cuatro valores de N: 5, 10, 50 y 100. Los gráficos deben estar incluidos en una misma figura. Los gráficos deben estar entre $0s$ y $10s$.
+    
+    \hint{Para generar el vector de tiempo, les recomiendo repetir el procedimiento realizado en el taller de Python.}
+    
+    \item \puntos{1} ¿A qué función se aproxima $f(t)$ a medida que aumenta $n$?
+  \end{enumerate}
+  
+  \begin{codigo}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parámetros
+t = np.linspace(0, 10, 1000)
+N_values = [5, 10, 50, 100]
+
+# Crear figura con subplots
+fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+axes = axes.flatten()
+
+for i, N in enumerate(N_values):
+    f_t = np.sum([np.cos(2*np.pi*n*t) for n in range(1, N+1)], axis=0)
+    axes[i].plot(t, f_t)
+    axes[i].set_title(f'N = {N}')
+    axes[i].set_xlabel('Tiempo [s]')
+    axes[i].set_ylabel('f(t)')
+    axes[i].grid(True)
+
+plt.tight_layout()
+plt.show()
+  \end{codigo}
+  
+  \begin{solucion}
+    \begin{enumerate}
+      \item Los gráficos muestran que a medida que aumenta $N$, la función presenta picos más pronunciados en los valores enteros de $t$.
+      
+      \item $f(t)$ se aproxima a una función shah (tren de impulsos) a medida que aumenta $n$.
+    \end{enumerate}
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Procesamiento de audio]{2}
+  \begin{enumerate}
+    \item \puntos{1} Importe un archivo de audio a su elección y grafíquelo usando matplotlib.
+    
+    \item \puntos{1} Utilice la función Audio de IPython para reproducir el audio con tres frecuencias de muestreo diferentes (una de estas debe ser la original). Comente lo que ocurre al variar este parámetro.
+  \end{enumerate}
+  
+  \begin{codigo}
+import librosa
+import matplotlib.pyplot as plt
+from IPython.display import Audio
+
+# Cargar audio
+audio, sr = librosa.load('archivo_audio.wav', sr=None)
+
+# Graficar
+time = np.arange(0, len(audio)) / sr
+plt.figure(figsize=(12, 4))
+plt.plot(time, audio)
+plt.xlabel('Tiempo [s]')
+plt.ylabel('Amplitud')
+plt.title('Señal de Audio')
+plt.grid(True)
+plt.show()
+
+# Reproducir con diferentes frecuencias de muestreo
+Audio(audio, rate=sr)      # Original
+Audio(audio, rate=sr//2)   # Mitad
+Audio(audio, rate=sr*2)    # Doble
+  \end{codigo}
+  
+  \begin{solucion}
+    Cuando variamos la frecuencia de muestreo, el audio se reproduce a velocidad distinta. Frecuencias menores hacen el audio más grave y lento, frecuencias mayores lo hacen más agudo y rápido.
+  \end{solucion}
+\end{ejercicio}
+
+\begin{ejercicio}[Función compleja vista en clases]{2}
+  \puntos{2} Considere la función vista en clases:
+  
+  $f(x)=\left(3\cdot \text{Gauss}\left(\frac{x}{3}\right)-\sqcap\left(x-\frac{3}{2}\right)-\sqcap\left(x+\frac{3}{2}\right)\right)\cdot \text{ramp}\left(x+3\right)$
+  
+  Grafique la función para $x\in [-6,6]$.
+  
+  \begin{codigo}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def gaussian(x, sigma=1):
+    return np.exp(-0.5 * (x/sigma)**2) / (sigma * np.sqrt(2*np.pi))
+
+def rect(x):
+    return np.where(np.abs(x) <= 0.5, 1, 0)
+
+def ramp(x):
+    return np.maximum(0, x)
+
+# Vector de x
+x = np.linspace(-6, 6, 1000)
+
+# Función completa
+f_x = (3 * gaussian(x/3, 1) - rect(x - 3/2) - rect(x + 3/2)) * ramp(x + 3)
+
+# Graficar
+plt.figure(figsize=(10, 6))
+plt.plot(x, f_x, 'b-', linewidth=2)
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.title('Función f(x)')
+plt.grid(True)
+plt.xlim(-6, 6)
+plt.show()
+  \end{codigo}
+\end{ejercicio}
+
+\begin{ejercicio}[Exponencial compleja en 3D]{2}
+  \puntos{2} Utilice la documentación de matplotlib como referencia para graficar la función $f(x)=e^{i2\pi x}$. Su resultado debería asemejarse a la figura 1.16 del libro guía.
+  
+  \begin{codigo}
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Parámetros
+x = np.linspace(0, 2, 1000)
+f_x = np.exp(1j * 2 * np.pi * x)
+
+# Crear figura 3D
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+# Graficar
+ax.plot(x, np.real(f_x), np.imag(f_x), 'b-', linewidth=2)
+
+# Configurar ejes
+ax.set_xlabel('x')
+ax.set_ylabel('Re{f(x)}')
+ax.set_zlabel('Im{f(x)}')
+ax.set_title('Exponencial Compleja: $f(x) = e^{j2\pi x})
+
+plt.show()
+  \end.codigo>
+\end{ejercicio}
+
+\end{ejerciciosimplementacion}
+
+% ========== PIE DE PÁGINA ==========
+\vfill
+\begin{center}
+  \begin{tikzpicture}
+    \draw[pucblue, line width=1pt] (0,0) -- (\textwidth,0);
+  \end{tikzpicture}
+  \vspace{0.3cm}
+  
+  \textcolor{pucgray}{\large ¡Éxito en su tarea!}\\
+  \textcolor{pucgray}{\small Recuerde entregar antes de \fechaEntrega\ a las \horaEntrega}
+\end{center}
+
+\end{document}
