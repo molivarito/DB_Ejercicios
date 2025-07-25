@@ -1,7 +1,6 @@
 """
+Dashboard - Página principal
 Sistema de Gestión de Ejercicios - Señales y Sistemas
-Archivo principal modularizado
-Patricio de la Cuadra - PUC Chile
 """
 
 import streamlit as st
@@ -10,13 +9,12 @@ from datetime import datetime
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Gestión Ejercicios SyS",
-    page_icon="📚",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="Dashboard - Gestión Ejercicios SyS",
+    page_icon="🏠",
+    layout="wide"
 )
 
-# CSS personalizado compartido
+# CSS personalizado
 st.markdown("""
 <style>
     .main-header {
@@ -45,10 +43,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Funciones auxiliares compartidas
 @st.cache_data
 def load_sample_data():
-    """Carga datos de ejemplo para el prototipo"""
+    """Carga datos de ejemplo"""
     return [
         {
             'id': 1,
@@ -114,7 +111,6 @@ def show_exercise_card(exercise):
             st.caption(f"Modalidad: {exercise['modalidad']}")
             st.caption(f"Estado: {exercise['estado']}")
 
-# Página principal (Dashboard)
 def main():
     """Página principal - Dashboard"""
     st.markdown('<h1 class="main-header">📚 Dashboard - Ejercicios SyS</h1>', 
@@ -150,18 +146,5 @@ def main():
     for exercise in sample_data:
         show_exercise_card(exercise)
 
-    # Información del sistema en sidebar
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📊 Estado del Sistema")
-    st.sidebar.info("✅ Base de datos conectada")
-    st.sidebar.info("📚 3 ejercicios disponibles")
-    
-    # Footer en sidebar
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("**Sistema de Gestión de Ejercicios**")
-    st.sidebar.markdown("*Señales y Sistemas - PUC*")
-    st.sidebar.markdown("v2.0.0 - Modularizado")
-
-# Ejecutar la aplicación
 if __name__ == "__main__":
     main()

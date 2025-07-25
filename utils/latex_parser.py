@@ -28,7 +28,7 @@ class ParsedExercise:
     """Clase para almacenar ejercicios parseados"""
     titulo: str
     enunciado: str
-    solucion: Optional[str] = None
+    solucion_completa: Optional[str] = None
     respuesta_final: Optional[str] = None
     nivel_dificultad: str = "Intermedio"
     unidad_tematica: str = "Por determinar"
@@ -148,7 +148,7 @@ class LaTeXParser:
             exercise = ParsedExercise(
                 titulo=f"Ejercicio {i+1} (environment)",
                 enunciado=enunciado,
-                solucion=solucion,
+                solucion_completa=solucion,
                 pattern_used="ejercicio_environment",
                 confidence_score=0.9,
                 **metadata
@@ -180,7 +180,7 @@ class LaTeXParser:
                     exercise = ParsedExercise(
                         titulo=f"{subsection_title} - Ejercicio {i+1}",
                         enunciado=self._clean_latex_text(exercise_content),
-                        solucion=self._clean_latex_text(solution_content) if solution_content else None,
+                        solucion_completa=self._clean_latex_text(solution_content) if solution_content else None,
                         unidad_tematica=unit,
                         nivel_dificultad=self._detect_difficulty(exercise_content),
                         modalidad=self._detect_modality(exercise_content),
