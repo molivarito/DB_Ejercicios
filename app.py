@@ -1,167 +1,149 @@
 """
 Sistema de Gestión de Ejercicios - Señales y Sistemas
-Archivo principal modularizado
-Patricio de la Cuadra - PUC Chile
+Aplicación Principal - PUC Chile
+
+Desarrollado por: Patricio de la Cuadra
+Curso: IEE2103 - Señales y Sistemas
 """
 
 import streamlit as st
-import pandas as pd
-from datetime import datetime
 
-# Configuración de la página
+# Configuración de la página principal
 st.set_page_config(
-    page_title="Gestión Ejercicios SyS",
+    page_title="Gestión de Ejercicios - Señales y Sistemas",
     page_icon="📚",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS personalizado compartido
-st.markdown("""
-<style>
+def main():
+    """Página principal que redirige al Dashboard"""
+    
+    # CSS personalizado para mejorar la apariencia
+    st.markdown("""
+    <style>
     .main-header {
-        font-size: 2.5rem;
-        color: #1f4e79;
-        text-align: center;
+        background: linear-gradient(90deg, #1f4e79 0%, #2e5984 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
         margin-bottom: 2rem;
+        text-align: center;
     }
-    .metric-card {
-        background-color: #f0f8ff;
-        padding: 1rem;
+    .welcome-card {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
         border-radius: 0.5rem;
         border-left: 4px solid #1f4e79;
+        margin: 1rem 0;
     }
-    .exercise-card {
-        border: 1px solid #ddd;
-        border-radius: 0.5rem;
+    .feature-box {
+        background-color: #e8f4f8;
         padding: 1rem;
+        border-radius: 0.5rem;
         margin: 0.5rem 0;
-        background-color: #f9f9f9;
+        border: 1px solid #b8daff;
     }
-    .difficulty-basic { color: #28a745; }
-    .difficulty-intermedio { color: #ffc107; }
-    .difficulty-avanzado { color: #fd7e14; }
-    .difficulty-desafio { color: #dc3545; }
-</style>
-""", unsafe_allow_html=True)
-
-# Funciones auxiliares compartidas
-@st.cache_data
-def load_sample_data():
-    """Carga datos de ejemplo para el prototipo"""
-    return [
-        {
-            'id': 1,
-            'titulo': 'Convolución de señales rectangulares',
-            'unidad_tematica': 'Sistemas Continuos',
-            'nivel_dificultad': 'Básico',
-            'tiempo_estimado': 15,
-            'modalidad': 'Teórico',
-            'enunciado': 'Calcule la convolución de dos señales rectangulares...',
-            'estado': 'Listo',
-            'fecha_creacion': '2024-01-15'
-        },
-        {
-            'id': 2,
-            'titulo': 'FFT de señal sinusoidal con ruido',
-            'unidad_tematica': 'Transformada de Fourier Discreta',
-            'nivel_dificultad': 'Intermedio',
-            'tiempo_estimado': 25,
-            'modalidad': 'Computacional',
-            'enunciado': 'Implemente en Python el cálculo de la FFT...',
-            'estado': 'Listo',
-            'fecha_creacion': '2024-01-20'
-        },
-        {
-            'id': 3,
-            'titulo': 'Análisis de estabilidad con transformada Z',
-            'unidad_tematica': 'Transformada Z',
-            'nivel_dificultad': 'Avanzado',
-            'tiempo_estimado': 35,
-            'modalidad': 'Mixto',
-            'enunciado': 'Analice la estabilidad del sistema dado usando...',
-            'estado': 'En revisión',
-            'fecha_creacion': '2024-01-25'
-        }
-    ]
-
-def get_difficulty_color(difficulty):
-    """Retorna la clase CSS para el color de dificultad"""
-    colors = {
-        'Básico': 'difficulty-basic',
-        'Intermedio': 'difficulty-intermedio', 
-        'Avanzado': 'difficulty-avanzado',
-        'Desafío': 'difficulty-desafio'
-    }
-    return colors.get(difficulty, '')
-
-def show_exercise_card(exercise):
-    """Muestra una tarjeta de ejercicio"""
-    with st.container():
-        col1, col2, col3 = st.columns([3, 1, 1])
-        
-        with col1:
-            st.markdown(f"**{exercise['titulo']}**")
-            st.caption(f"ID: {exercise['id']} | {exercise['unidad_tematica']}")
-            
-        with col2:
-            difficulty_class = get_difficulty_color(exercise['nivel_dificultad'])
-            st.markdown(f"<span class='{difficulty_class}'>{exercise['nivel_dificultad']}</span>", 
-                       unsafe_allow_html=True)
-            st.caption(f"{exercise['tiempo_estimado']} min")
-            
-        with col3:
-            st.caption(f"Modalidad: {exercise['modalidad']}")
-            st.caption(f"Estado: {exercise['estado']}")
-
-# Página principal (Dashboard)
-def main():
-    """Página principal - Dashboard"""
-    st.markdown('<h1 class="main-header">📚 Dashboard - Ejercicios SyS</h1>', 
-                unsafe_allow_html=True)
+    </style>
+    """, unsafe_allow_html=True)
     
-    # Métricas principales
-    col1, col2, col3, col4 = st.columns(4)
+    # Header principal
+    st.markdown("""
+    <div class="main-header">
+        <h1>📚 Sistema de Gestión de Ejercicios</h1>
+        <h2>IEE2103 - Señales y Sistemas</h2>
+        <p>Pontificia Universidad Católica de Chile</p>
+        <p><strong>Desarrollado por:</strong> Patricio de la Cuadra</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Mensaje de bienvenida
+    st.markdown("""
+    <div class="welcome-card">
+        <h3>🎯 ¡Bienvenido al Sistema de Gestión de Ejercicios!</h3>
+        <p>Este sistema te permite gestionar, buscar y generar documentos con ejercicios para el curso de Señales y Sistemas.</p>
+        <p><strong>👈 Usa el menú lateral para navegar entre las diferentes funcionalidades.</strong></p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Funcionalidades principales
+    st.subheader("🚀 Funcionalidades Principales")
+    
+    col1, col2 = st.columns(2)
     
     with col1:
-        st.metric("Total Ejercicios", "3", "↗️ +1")
+        st.markdown("""
+        <div class="feature-box">
+            <h4>🏠 Dashboard</h4>
+            <p>Resumen general del sistema con estadísticas y métricas actualizadas.</p>
+        </div>
+        
+        <div class="feature-box">
+            <h4>➕ Agregar Ejercicio</h4>
+            <p>Formulario completo para crear nuevos ejercicios con metadatos detallados.</p>
+        </div>
+        
+        <div class="feature-box">
+            <h4>🔍 Buscar Ejercicios</h4>
+            <p>Búsqueda avanzada con filtros y selección para documentos.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
     with col2:
-        st.metric("Listos para usar", "2", "")
+        st.markdown("""
+        <div class="feature-box">
+            <h4>📥 Importar LaTeX</h4>
+            <p>Importación automática de ejercicios desde archivos LaTeX existentes.</p>
+        </div>
+        
+        <div class="feature-box">
+            <h4>🎯 Generar Documentos</h4>
+            <p>Creación de Pruebas, Tareas y Guías con templates profesionales PUC.</p>
+        </div>
+        
+        <div class="feature-box">
+            <h4>📊 Estadísticas</h4>
+            <p>Análisis completo de la base de datos con gráficos interactivos.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Información del sistema
+    st.divider()
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.info("📈 **Estado:** Sistema 100% funcional")
+    
+    with col2:
+        st.info("🗄️ **Base de Datos:** SQLite con 35+ campos")
+    
     with col3:
-        st.metric("En revisión", "1", "")
-    with col4:
-        st.metric("Último agregado", "3 días", "")
+        st.info("🎨 **Templates:** 3 formatos profesionales PUC")
     
-    # Distribución por unidad temática
-    st.subheader("📈 Distribución por Unidad Temática")
+    # Instrucciones de uso
+    st.subheader("📋 Cómo Empezar")
     
-    # Datos de ejemplo para el gráfico
-    unidades_data = pd.DataFrame({
-        'Unidad': ['Sistemas Continuos', 'DFT', 'Transformada Z'],
-        'Cantidad': [1, 1, 1]
-    })
+    st.markdown("""
+    1. **🏠 Ve al Dashboard** para ver el resumen del sistema
+    2. **🔍 Busca Ejercicios** existentes y selecciona los que te interesen
+    3. **🎯 Genera Documentos** usando los ejercicios seleccionados
+    4. **📥 Importa LaTeX** si tienes archivos existentes para agregar al sistema
+    5. **➕ Agrega Ejercicios** nuevos cuando sea necesario
     
-    st.bar_chart(unidades_data.set_index('Unidad'))
+    💡 **Tip:** Comienza explorando los ejercicios existentes en la sección de Búsqueda.
+    """)
     
-    # Ejercicios recientes
-    st.subheader("🕒 Ejercicios Agregados Recientemente")
-    
-    sample_data = load_sample_data()
-    for exercise in sample_data:
-        show_exercise_card(exercise)
+    # Footer
+    st.divider()
+    st.markdown("""
+    <div style='text-align: center; color: #666; font-size: 0.9rem;'>
+        Sistema de Gestión de Ejercicios v2.0 | 
+        Desarrollado para IEE2103 - Señales y Sistemas | 
+        Pontificia Universidad Católica de Chile | 
+        Patricio de la Cuadra - 2025
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Información del sistema en sidebar
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📊 Estado del Sistema")
-    st.sidebar.info("✅ Base de datos conectada")
-    st.sidebar.info("📚 3 ejercicios disponibles")
-    
-    # Footer en sidebar
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("**Sistema de Gestión de Ejercicios**")
-    st.sidebar.markdown("*Señales y Sistemas - PUC*")
-    st.sidebar.markdown("v2.0.0 - Modularizado")
-
-# Ejecutar la aplicación
 if __name__ == "__main__":
     main()
