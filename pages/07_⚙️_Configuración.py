@@ -1,10 +1,10 @@
 """
-Configuración
+Configuración del Sistema - CON GESTIÓN DE BD
 Sistema de Gestión de Ejercicios - Señales y Sistemas
 """
 
 import streamlit as st
-from pathlib import Path
+import os
 
 # Configuración de la página
 st.set_page_config(
@@ -22,15 +22,23 @@ st.markdown("""
         text-align: center;
         margin-bottom: 2rem;
     }
+    .config-section {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+        border-left: 4px solid #1f4e79;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 def main():
-    """Página de configuración"""
-    st.markdown('<h1 class="main-header">⚙️ Configuración</h1>', 
+    """Página de configuración del sistema"""
+    st.markdown('<h1 class="main-header">⚙️ Configuración del Sistema</h1>', 
                 unsafe_allow_html=True)
     
     # Configuración general
+    st.markdown('<div class="config-section">', unsafe_allow_html=True)
     st.subheader("🔧 Configuración General")
     
     col1, col2 = st.columns(2)
@@ -44,8 +52,10 @@ def main():
         st.text_input("Semestre Actual", value="2025-1")
         st.text_input("Email", value="pcuadra@uc.cl")
         st.selectbox("Idioma", ["Español", "English"])
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Configuración de importación LaTeX
+    st.markdown('<div class="config-section">', unsafe_allow_html=True)
     st.subheader("📥 Configuración de Importación LaTeX")
     
     with st.expander("🔧 Patrones Personalizados"):
@@ -59,141 +69,198 @@ def main():
         with col2:
             st.text_input("Patrón dificultad", value="% Dificultad:")
             st.text_input("Patrón unidad", value="% Unidad:")
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Configuración de exportación
+    st.markdown('<div class="config-section">', unsafe_allow_html=True)
     st.subheader("📄 Configuración de Exportación")
     
     st.text_input("Template LaTeX", value="template_prueba.tex")
     st.checkbox("Incluir logo UC", value=True)
     st.checkbox("Numerar ejercicios automáticamente", value=True)
     st.checkbox("Incluir fecha en documentos", value=True)
+    st.markdown('</div>', unsafe_allow_html=True)
     
-    # Configuración de base de datos
-    st.subheader("💾 Base de Datos")
+    st.divider()
     
-    db_path = st.text_input("Ruta de Base de Datos", value="database/ejercicios.db")
+    # 🆕 NUEVA SECCIÓN: Gestión de Base de Datos
+    create_cleanup_interface()
+
+
+def create_cleanup_interface():
+    """
+    Interfaz de Streamlit para gestión de limpieza de BD
+    """
     
-    # Verificar estado de la BD
+    st.subheader("🗄️ Gestión de Base de Datos")
+    
+    # Importar el DatabaseCleanupManager
     try:
-        from database.db_manager import DatabaseManager
-        db_manager = DatabaseManager()
-        
-        # Obtener información de la BD
-        ejercicios = db_manager.obtener_ejercicios()
-        stats = db_manager.obtener_estadisticas()
-        
-        st.success(f"✅ Base de datos conectada - {len(ejercicios)} ejercicios")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.info(f"📄 Archivo: {Path(db_path).name}")
-            st.info(f"📊 Total ejercicios: {stats['total_ejercicios']}")
-        
-        with col2:
-            db_file = Path(db_path)
-            if db_file.exists():
-                size_mb = db_file.stat().st_size / (1024 * 1024)
-                st.info(f"💾 Tamaño: {size_mb:.2f} MB")
-                st.info(f"📅 Modificado: {db_file.stat().st_mtime}")
-        
-    except Exception as e:
-        st.error(f"❌ Error conectando a BD: {e}")
+        from database.cleanup_manager import DatabaseCleanupManager
+    except ImportError:
+        st.error("❌ No se pudo importar DatabaseCleanupManager. Verifica que database/cleanup_manager.py existe.")
+        return
     
-    # Operaciones de BD
-    col1, col2, col3 = st.columns(3)
+    cleanup_manager = DatabaseCleanupManager()
     
-    with col1:
-        if st.button("🔄 Crear Backup"):
-            try:
-                import shutil
-                from datetime import datetime
+    # Mostrar estadísticas actuales
+    with st.expander("📊 Estado Actual de la Base de Datos", expanded=True):
+        stats = cleanup_manager.get_database_stats()
+        
+        if 'error' in stats:
+            st.error(f"Error obteniendo estadísticas: {stats['error']}")
+        else:
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Total Ejercicios", stats['total_exercises'])
+                st.metric("Sin Solución", stats['no_solution'])
+            
+            with col2:
+                st.write("**Por Unidad:**")
+                for unit, count in stats['by_unit'].items():
+                    st.write(f"• {unit}: {count}")
+            
+            with col3:
+                st.write("**Por Dificultad:**")
+                for diff, count in stats['by_difficulty'].items():
+                    st.write(f"• {diff}: {count}")
                 
-                backup_name = f"database/ejercicios_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
-                shutil.copy2(db_path, backup_name)
-                st.success(f"✅ Backup creado: {backup_name}")
-            except Exception as e:
-                st.error(f"❌ Error creando backup: {e}")
+                st.metric("Tamaño BD", f"{stats['db_size']} MB")
     
-    with col2:
-        if st.button("📊 Verificar Integridad"):
-            try:
-                db_manager = DatabaseManager()
-                ejercicios = db_manager.obtener_ejercicios()
-                
-                # Verificaciones básicas
-                problemas = []
-                for ej in ejercicios:
-                    if not ej.get('titulo'):
-                        problemas.append(f"Ejercicio ID {ej['id']}: Sin título")
-                    if not ej.get('enunciado'):
-                        problemas.append(f"Ejercicio ID {ej['id']}: Sin enunciado")
-                
-                if problemas:
-                    st.warning(f"⚠️ {len(problemas)} problemas encontrados:")
-                    for problema in problemas[:5]:
-                        st.write(f"- {problema}")
-                else:
-                    st.success("✅ Base de datos íntegra")
-                    
-            except Exception as e:
-                st.error(f"❌ Error verificando: {e}")
+    st.divider()
     
-    with col3:
-        if st.button("🗑️ Limpiar Cache"):
-            try:
-                # Limpiar cache de Streamlit
-                st.cache_data.clear()
-                st.cache_resource.clear()
-                st.success("✅ Cache limpiado")
-            except Exception as e:
-                st.error(f"❌ Error limpiando cache: {e}")
+    # Opciones de limpieza
+    st.subheader("🧹 Opciones de Limpieza")
     
-    # Información del sistema
-    st.subheader("🖥️ Información del Sistema")
+    cleanup_option = st.selectbox(
+        "Selecciona tipo de limpieza:",
+        [
+            "🔥 Eliminar TODOS los ejercicios",
+            "📂 Eliminar por archivo fuente",
+            "🔧 Eliminar por patrón de parser",
+            "♻️ Recrear base de datos completa"
+        ]
+    )
     
+    # Configuración específica según opción
+    source_to_delete = None
+    pattern_to_delete = None
+    
+    if cleanup_option == "📂 Eliminar por archivo fuente":
+        source_to_delete = st.text_input(
+            "Nombre del archivo fuente:",
+            placeholder="Ej: main.tex, guia_cap1.tex"
+        )
+    elif cleanup_option == "🔧 Eliminar por patrón de parser":
+        pattern_to_delete = st.selectbox(
+            "Patrón del parser:",
+            ["patricio_format", "subsection_complete", "ejercicio_environment", "generic_conservative"]
+        )
+    
+    # Checkbox de confirmación
+    confirm_cleanup = st.checkbox(
+        "⚠️ Confirmo que quiero realizar esta acción (IRREVERSIBLE sin backup)",
+        value=False
+    )
+    
+    # Botones de acción
     col1, col2 = st.columns(2)
     
     with col1:
-        st.write("**Versión del Sistema:**")
-        st.write("- Aplicación: v2.0.0 (Modularizada)")
-        st.write("- Streamlit: ", st.__version__)
-        st.write("- Python: 3.11+")
-        
-    with col2:
-        st.write("**Módulos Disponibles:**")
-        
-        # Verificar módulos críticos
-        modulos = {
-            "DatabaseManager": "database.db_manager",
-            "LaTeX Parser": "utils.latex_parser", 
-            "PDF Generator": "generators.pdf_generator"
-        }
-        
-        for nombre, modulo in modulos.items():
+        if st.button("💾 Crear Backup Primero", type="secondary"):
             try:
-                __import__(modulo)
-                st.write(f"- ✅ {nombre}")
-            except ImportError:
-                st.write(f"- ❌ {nombre}")
+                backup_path = cleanup_manager.create_backup()
+                st.success(f"✅ Backup creado: {backup_path}")
+            except Exception as e:
+                st.error(f"❌ Error creando backup: {str(e)}")
     
-    # Configuración avanzada
-    with st.expander("🔬 Configuración Avanzada"):
-        st.write("**Configuración de Logging:**")
-        log_level = st.selectbox("Nivel de Log", ["INFO", "DEBUG", "WARNING", "ERROR"])
-        
-        st.write("**Configuración de Parser:**")
-        st.checkbox("Modo debug parser", value=False)
-        st.number_input("Timeout parsing (seg)", min_value=5, max_value=60, value=30)
-        
-        st.write("**Configuración de Memoria:**")
-        st.checkbox("Cache agresivo", value=True)
-        st.number_input("Max ejercicios en cache", min_value=50, max_value=1000, value=200)
+    with col2:
+        if st.button("🗑️ Ejecutar Limpieza", type="primary", disabled=not confirm_cleanup):
+            if cleanup_option == "🔥 Eliminar TODOS los ejercicios":
+                try:
+                    cleanup_manager.clear_all_exercises()
+                    st.success("✅ Todos los ejercicios eliminados")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
+                    
+            elif cleanup_option == "📂 Eliminar por archivo fuente" and source_to_delete:
+                try:
+                    count = cleanup_manager.clear_exercises_by_source(source_to_delete)
+                    st.success(f"✅ {count} ejercicios eliminados de fuente '{source_to_delete}'")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
+                    
+            elif cleanup_option == "🔧 Eliminar por patrón de parser":
+                try:
+                    count = cleanup_manager.clear_exercises_by_pattern(pattern_to_delete)
+                    st.success(f"✅ {count} ejercicios eliminados con patrón '{pattern_to_delete}'")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
+                    
+            elif cleanup_option == "♻️ Recrear base de datos completa":
+                try:
+                    cleanup_manager.recreate_database()
+                    st.success("✅ Base de datos recreada completamente")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
     
-    # Footer con información
-    st.markdown("---")
-    st.markdown("**Sistema de Gestión de Ejercicios - Señales y Sistemas**")
-    st.markdown("*Desarrollado por Patricio de la Cuadra - PUC Chile*")
-    st.markdown("*Versión Modularizada - Julio 2025*")
+    st.divider()
+    
+    # Gestión de backups
+    st.subheader("💾 Gestión de Backups")
+    
+    backups = cleanup_manager.list_backups()
+    
+    if backups:
+        st.write(f"**{len(backups)} backups disponibles:**")
+        
+        for backup in backups:
+            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+            
+            with col1:
+                st.write(f"📄 {backup['filename']}")
+                st.caption(f"Modificado: {backup['modified'].strftime('%Y-%m-%d %H:%M')}")
+            
+            with col2:
+                st.write(f"{backup['size_mb']} MB")
+            
+            with col3:
+                if st.button("🔄 Restaurar", key=f"restore_{backup['filename']}"):
+                    try:
+                        cleanup_manager.restore_from_backup(backup['filepath'])
+                        st.success(f"✅ BD restaurada desde {backup['filename']}")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error restaurando: {str(e)}")
+            
+            with col4:
+                if st.button("🗑️ Eliminar", key=f"delete_{backup['filename']}"):
+                    try:
+                        os.remove(backup['filepath'])
+                        st.success(f"✅ Backup eliminado")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error eliminando backup: {str(e)}")
+    else:
+        st.info("No hay backups disponibles")
+    
+    # Instrucciones post-limpieza
+    st.divider()
+    st.subheader("📝 Después de la Limpieza")
+    st.info("""
+    **Pasos recomendados después de limpiar la BD:**
+    
+    1. **Actualizar el parser LaTeX** con la nueva versión V4.0
+    2. **Ir a 'Importar LaTeX'** y cargar tu archivo de guía
+    3. **Verificar** que los ejercicios se importen correctamente
+    4. **Crear backup** de la nueva BD limpia
+    """)
+
 
 if __name__ == "__main__":
     main()

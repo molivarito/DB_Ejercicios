@@ -1,0 +1,1590 @@
+\documentclass[letterpaper, 12pt]{article}
+\usepackage[spanish, es-tabla]{babel} %%Paquete español para mac
+\usepackage[utf8]{inputenc} %% Para unicode
+\usepackage{graphicx} %% Para incluir figuras
+\usepackage{ifpdf}
+%\usepackage{mathabx}
+\usepackage{xcolor}
+\DeclareGraphicsExtensions{.pdf}
+\usepackage{fullpage}
+\usepackage{amssymb}
+\usepackage[cmex10]{amsmath}
+%\usepackage{amsmath}
+\usepackage[all]{xy}
+\usepackage{MnSymbol}
+\setcounter{totalnumber}{5}
+\renewcommand{\textfraction}{0.1}
+\usepackage{float}
+\decimalpoint
+\usepackage{url}
+\graphicspath{Enunciados/}
+\usepackage{hyperref}
+\usepackage{biblatex} 
+\usepackage{csquotes}
+\addbibresource{Citas.bib}
+%\newcommand{\sha}{\textls{\text{l}\!\_\!\text{l}\!\_\!\text{l}}}
+\usepackage[OT2,T1]{fontenc}
+\DeclareSymbolFont{cyrletters}{OT2}{wncyr}{m}{n}
+\DeclareMathSymbol{\sha}{\mathalpha}{cyrletters}{"58}
+\hypersetup{colorlinks=false,bookmarksopen=true,linkbordercolor={1 1 1}}
+
+
+\newif\ifanswers
+%%%%%%%%%%%%%%%%%%%%%%   OCULTAR SOLUCIONES  %%%%%%%%%%%%%%%%%%%%%% 
+
+% comentar la siguiente línea permite ocultar las soluciones de los ejercicios
+
+\answerstrue
+
+%%%%%%%%%%%%%%%%%%%%%%   ESTRUCTURA DE  EJERCICIOS  %%%%%%%%%%%%%%%%%%%%%% 
+
+% Los ejercicios están separados por secciones, siguiendo la siguiente estructura:
+
+%  \subsection*{Tema a tratar}
+
+%       \begin{enumerate}
+%               % Cada ejercicio se asocia a un ítem
+%               \item << Enunciado del ejercicio >>
+%               
+%               \ifanswers % condición "if" para ocultar las soluciones
+%               {\color{red} % Permite que el texto de las soluciones se vea en rojo 
+%
+%                 << SOLUCIÓN DEL EJERCICIO >>
+%
+%               }
+%               \fi %
+%               \item <<Otro ejercicio>>
+%       \end{enumerate}
+%
+
+
+
+
+\usepackage{enumerate} 
+\setlength{\parindent}{0pt}
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%   ENCABEZADO  %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace*{-1cm}
+\includegraphics[width=2cm]{logo_uc_medio.jpg}
+\vspace*{-2cm}
+
+\hspace*{2cm}
+ \begin{tabular}{l}
+  {\ Pontificia Universidad Católica de Chile}\\
+  {\ Escuela de Ingeniería}\\
+  {\ Departamento de Ingeniería Eléctrica}\\
+  {\ IEE2103 – Señales y Sistemas}\
+ \end{tabular}
+ \hfill 
+\vspace*{1mm}
+\begin{center}
+{\LARGE\bf Guía: Capítulo 1 (Versión 3)}\\
+\vspace*{2mm}
+Matthew Helm - mhelm@uc.cl\\
+Martín Peña  - martinpena@uc.cl\\
+Ana M. Bolados - ana.bolados@uc.cl\\
+\textit{Se utilizan ejercicios de MIT OpenCourseWare y ayudantías de Carlos Castillo}
+
+
+\end{center}
+\hrule\vspace*{2pt}\hrule
+
+\setlength{\parindent}{0pt}
+% ***********************************************
+% ***********************************************
+\vspace*{10pt}
+\section*{Ejercicios por tema}
+
+
+\subsection*{Números complejos}
+
+\begin{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%  NÚMEROS COMPLEOS - P1  %%%%%%%%%%%%%%%%%%%%%% 
+
+
+    \item Se tiene el número complejo $2z = 1 +i\sqrt{3}$ y $2w = \sqrt{2}-i\sqrt{2}$ ahora calcule usando la forma polar:
+    \begin{enumerate}
+        \item $z\cdot w$
+        \item $z/w$
+        \item $zz^{*},\frac{1}{2} (z + z^{*}), \frac{1}{2i} (z - z^{*})$
+        \item Magnitud y fase de $(z\cdot w)^{*}$
+    \end{enumerate}
+    \ifanswers
+    {\color{red} \textbf{Solución:} \textit{Resuelta en ayudantía}}
+    \fi
+    
+%%%%%%%%%%%%%%%%%%%%%%  NÚMEROS COMPLEOS - P2  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Demuestre que para todo $z \in \mathbb{C}$  se cumple que:
+    \begin{itemize}
+        \item $\Re{\{z\}} = \frac{z + z^*}{2}$
+        \item $j\Im{\{z\}}  = \frac{z-z^*}{2}$
+    \end{itemize}
+
+    \ifanswers
+    {\color{red}\textbf{Solución:} 
+
+    
+    Tomamos un complejo cualquiera $z = \sigma + j \omega$\\
+    $$z + z^* = \sigma + j\omega + \sigma -j\omega = 2\sigma $$
+    $$\frac{z + z^*}{2} = \sigma$$
+    Similarmente:
+    $$z-z^* = \sigma +j\omega - \sigma + j\omega = 2j\omega$$
+    $$\frac{z - z^*}{2} = j \omega$$}
+    \fi
+    %%%%%%%%%%%%%%%%%%%%%%  NÚMEROS COMPLEOS - P3  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Demuestre que 
+    \begin{align*}
+        1-e^{j\alpha} = 2\sin \left(\frac{\alpha}{2}\right)e^{j(\alpha-\pi)/2}
+    \end{align*}
+    
+    \ifanswers
+    {\color{red} \textbf{Solución:}
+
+    Aplicando la identidad de Euler a la parte derecha de la igualdad se obtiene:
+    \begin{align*}
+        1-e^{j\alpha} &= 2\sin\left(\frac{\alpha}{2}\right)(\cos\left(\frac{\alpha}{2}-\frac{\pi}{2}\right)+j\sin\left(\frac{\alpha}{2}-\frac{\pi}{2}\right))
+    \end{align*}
+    Recordando que $\cos(\theta-\pi/2) = \sin(\theta)$ y $\sin(\theta-\pi/2)=-\cos(\theta)$ se tendrá que
+    \begin{align*}
+        1-e^{j\alpha} &= 2\sin\left(\frac{\alpha}{2}\right)(\sin\left(\frac{\alpha}{2}\right)-j\cos\left(\frac{\alpha}{2}\right)) \\
+        1-e^{j\alpha} &= 2\sin\left(\frac{\alpha}{2}\right)^2-2j\sin\left(\frac{\alpha}{2}\right)\cos\left(\frac{\alpha}{2}\right)
+    \end{align*}
+    Lo anterior se puede desarrollar con las siguientes identidades trigonométricas: $\sin(\theta)^2=\frac{1}{2}(1-\cos(2\theta))$ y $\sin(2\theta) = 2\sin(\theta)\cos(\theta)$. Así,
+    \begin{align*}
+        1-e^{j\alpha} &= 2\left(\frac{1-\cos(\alpha)}{2}\right)-j\sin(\alpha) \\
+        &= \ 1 - (\cos(\alpha)+j\sin(\alpha)) = 1 - e^{j\alpha},
+    \end{align*}
+    lo que demuestra lo pedido.}
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  NÚMEROS COMPLEOS - P4  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Considere la señal $x(t) = \sqrt{2}(1+j)e^{j\pi/4}e^{(-1+j 2\pi)t} $. Determine:
+    \begin{enumerate}
+        \item $\Re\{x(t)\}$
+        \item $\Im\{x(t)\}$ 
+        \item $x(t+2)+x^{*}(t+2)$
+    \end{enumerate}
+
+    \ifanswers
+    {\color{red}\textbf{Solución:}
+    
+    Primero, puede ser conveniente desarrollar $x(t)$ en su forma polar:
+    \begin{align*}
+        1+j &= \sqrt{2}e^{j\pi/4} \\
+        \sqrt{2}(1+j)e^{j\pi/4} &= 2e^{j\pi/2}= 2 j \\
+        e^{(-1+2j\pi)t} &= e^{-t} e^{2j\pi t} \\
+        x(t) &= 2j e^{-t}(\cos(2\pi t)+j\sin(2\pi t)) \\
+        x(t) &= -2e^{-t}\sin(2\pi t) + 2je^{-t} \cos(2\pi t)
+    \end{align*}
+    \begin{enumerate}
+        \item Del resultado anterior, es evidente que $\Re\{x(t)\}=-2e^{-t}\sin(2\pi t)$.
+        \item De manera similar, $\Im\{x(t)\}=2e^{-t}\cos(2\pi t)$.
+        \item Un número complejo más su conjugado corresponde a dos veces la parte real (evaluado en $t^{*}=t+2$ para este caso). Así, $x(t+2)+x^{*}(t+2) = -4e^{(-t-2)}\sin(2\pi(t+2))=-4e^{-(t+2)}\sin(2\pi t)$.
+    \end{enumerate}}
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  NÚMEROS COMPLEOS - P5  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Determinar el conjunto de puntos que verifican las condiciones siguientes: 
+    \begin{enumerate}
+        \item \(|z-2+3i| = 1\)
+        \item \(\Re (z^* - i) = 2\)
+    \end{enumerate}
+
+    \ifanswers
+    {\color{red}\textbf{Solución:}
+    \begin{enumerate}
+        \item Sea \(z = x + iy\), entonces \(z-2 + 3i = (x - 2) + i(y + 3) \) y \(|z-2+3i| = \sqrt{(x-2)^2 + (y+3)^2} = 1\), se cumple que los puntos que satisfacen esta igualdad son los puntos pertenecientes a la circunferencia de radio 1 y centro en \((2, -3)\).
+
+        \item Sustituyendo \( z = x + iy \), se obtiene \( \Re(z^* - i) = \Re(x - iy - i) = x \). La ecuación \( x = 2 \) corresponde a la recta vertical que pasa por el punto \( (2,0) \).
+    \end{enumerate}
+    
+    }
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  NÚMEROS COMPLEOS - P6  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Hallar todos los valores de \( (2i)^{1/2} \) y calcular la raíz principal.
+
+    \ifanswers
+  {\color{red}  \textbf{Solución:}
+  
+    Sea \( w = 2i \). Entonces:
+    \[
+    w = 2i = 2e^{i\pi/2} = 2e^{i(\pi/2 + 2k\pi)}, \quad k = 0, 1, 2, \dots
+    \]
+    Por tanto, \( z = w^{1/2} = \sqrt{2}e^{i(\pi/4 + k\pi)} \). Damos valores a \( k \) hasta que encontramos el primer repetido:
+    \[
+    z_{k=0} = \sqrt{2}e^{i\pi/4}
+    \]
+    \[
+    z_{k=1} = \sqrt{2}e^{i(\pi/4 + \pi)} = \sqrt{2}e^{5i\pi/4}
+    \]
+    \[
+    z_{k=2} = \sqrt{2}e^{i(\pi/4 + 2\pi)} = z_{k=0}
+    \]
+    Vemos que para \( k = 2 \) se obtiene la misma raíz que para \( k = 0 \) ya que \( e^{i2\pi} \) implica dar una vuelta completa. Así pues, únicamente existen dos soluciones distintas, \( \sqrt{2}e^{i\pi/4} \) y \( \sqrt{2}e^{5i\pi/4} \). La raíz principal es la que corresponde a \( k = 0 \), es decir, \( \sqrt{2}e^{i\pi/4} \).
+   }
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  NÚMEROS COMPLEOS - P7  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Resolver la ecuación \(\cos z = 2\)
+
+    \ifanswers
+  {\color{red}  \textbf{Solución:}
+  
+    Obviamente, si $z$ fuera real, la ecuación no tendría solución, puesto que el coseno toma valores entre -1 y 1, pero esto no tiene por qué ser cierto en los $\mathbb{C}$.
+    
+    Empleamos la definición de \( \cos z \):
+    \[
+    e^{iz} + e^{-iz} = 4
+    \]
+    Introducimos ahora la variable \( w \equiv e^{iz} \):
+    \[
+    w + \frac{1}{w} = 4 \implies w^2 - 4w + 1 = 0
+    \]
+    Las soluciones de esta ecuación cuadrática son \( w = (2 \pm \sqrt{3})e^{2in\pi} \) con \( n = 0, \pm1, \pm2, \dots \). Escribimos \( z = x + iy \) y hallamos \( x \) e \( y \):
+    \[
+    w = e^{iz} \implies (2 \pm \sqrt{3})e^{2in\pi} = e^{ix}e^{-y}
+    \]
+    Comparamos ambos miembros de la ecuación:
+    \[
+    2 \pm \sqrt{3} = e^{-y} \implies y = -\ln(2 \pm \sqrt{3})
+    \]
+    \[
+    e^{2in\pi} = e^{ix} \implies x = 2n\pi
+    \]
+    Por tanto, las soluciones de la ecuación son:
+    \[
+    z = 2n\pi - i\ln(2 + \sqrt{3})
+    \]
+    y
+    \[
+    z = 2n\pi - i\ln(2 - \sqrt{3})
+    \]
+    donde \( n = 0, \pm1, \pm2, \dots \)
+   }
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  NÚMEROS COMPLEOS - P8  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Ordene de menor a mayor las partes reales de los siguientes números complejos: \( (-1)^i \), \( \sinh(\pi i) \), \( i\ln\sqrt{-1+i} \). Tome el valor principal del logaritmo cuando proceda.
+
+    \ifanswers
+  {\color{red}  \textbf{Solución:}
+  
+    Para calcular la parte real, expresamos los números complejos en forma cartesiana:
+    \[
+    (-1)^i = e^{i\ln(-1)} = e^{i(\ln |1| + i\pi)} = e^{-\pi}
+    \]
+    \[
+    \sinh(\pi i) = i\sin\pi = 0
+    \]
+    \[
+    i\ln\sqrt{-1+i} = \frac{i}{2}\ln(-1+i) = \frac{i}{2}\left(\ln\sqrt{2} + i\frac{3\pi}{4}\right) = -\frac{3\pi}{8} + i\frac{1}{4}\ln 2
+    \]
+    Luego, \( \Re[i\ln\sqrt{-1+i}] < \Re [\sinh(\pi i)] < \Re [(-1)^i] \).
+   }
+    \fi
+    
+    
+    
+\end{enumerate}
+
+\subsection*{Señales y Sistemas}
+
+\begin{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%  SEÑALES Y SISTEMAS - P1  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Considere las señales de entrada
+    \begin{align*}
+        x(t) &= \cos\left(\frac{2\pi t}{3}\right) + 2 \sin\left(\frac{16 \pi t}{3}\right) \\
+        y(t) &= \sin(\pi t)
+    \end{align*}
+        El sistema se modela por la relación $z(t)=x(t)y(t)$, donde $z(t)$ es la señal salida.
+        Exprese $z(t)$ como una combinación lineal de exponenciales complejas de la forma
+        \begin{align*}
+            z(t) &= \sum_{k} c_k e^{j k (2\pi/T)},
+        \end{align*}
+        identificando el valor de $T$ y los coeficientes $c_k$.
+  
+
+    \ifanswers
+  {\color{red}  \textbf{Solución:}
+
+    Las señales $x(t)$ e $y(t)$ se pueden descomponer como una suma de exponenciales complejas, lo que lleva a
+    \begin{align*}
+        x(t) &= \frac{1}{2} e^{j(2\pi t/3)} + \frac{1}{2} e^{-2\pi t/3}+\frac{e^{16\pi t/3}}{j}-\frac{e^{-16\pi t /3}}{j} \\
+        y(t) &= \frac{e^{j\pi t}}{2j}-\frac{e^{-j\pi t}}{2j}
+    \end{align*}
+    Luego, $z(t)$ será
+    \begin{align*}
+        z(t) &= \frac{1}{4j}e^{j5\pi t /3} - \frac{1}{4j}e^{-j\pi t /3}+\frac{1}{4j}e^{j\pi t/3}-\frac{1}{4j}e^{-j5\pi t/3} - \frac{1}{2}e^{j19\pi t/3} + \frac{1}{2}e^{j13\pi t/3}-\frac{1}{2}e^{-j13\pi t/3}-\frac{1}{2}e^{-j19\pi t/3}
+    \end{align*}
+
+    Se puede notar que todas las exponenciales complejas son potencias de $e^{j\pi t/3}$, por lo que $T = \frac{2\pi}{(\pi/3)} = 6 \ [s]$. Los coeficientes son los que multiplican cada exponencial compleja.}
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  SEÑALES Y SISTEMAS - P2  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Sea la señal $x(t) = \cos{(\omega_x(t+\tau_x)+\theta_x)}$:
+
+    \begin{enumerate}
+        \item Determine la frecuencia en Hz y el período de $x(t)$ para los casos:
+        \begin{enumerate}[i)]
+            \item $\omega_x = \pi/3$, $\tau_x = 0$, $\theta_x = 2\pi$
+            \item $\omega_x = 3\pi/4$, $\tau_x = 1/2$, $\theta_x = \pi/4$
+            \item $\omega_x = 3/4$, $\tau_x = 1/2$, $\theta_x = 1/4$
+        \end{enumerate}
+    \item Ahora considere la señal $y(t) = \sin{(\omega_y(t+\tau_y)+\theta_y)}$ y para los siguientes casos evalúe en qué casos $x(t) = y(t)$:
+    \begin{enumerate}[i)]
+        \item $\omega_x = \pi/3$, $\tau_x = 0$, $\theta_x = 2\pi$ y $\omega_y = \pi/3$, $\tau_y = 1$, $\theta_y = -\pi/3$
+    
+        \item $\omega_x = 3\pi/4$, $\tau_x = 1/2$, $\theta_x = \pi/4$ y $\omega_y = 11\pi/4$, $\tau_y = 1$, $\theta_y = 3\pi/8$
+    
+        \item $\omega_x = 3/4$, $\tau_x = 1/2$, $\theta_x = 1/4$ y $\omega_y = 3/4$, $\tau_y = 1$, $\theta_y = 3/8$
+    \end{enumerate}
+    \end{enumerate}
+        \ifanswers
+       {\color{red} \textbf{Solución:}
+       
+    .
+       \begin{enumerate}[a)]
+           \item    Primero notamos que $\omega = 2\pi f$ con $f$ la frecuencia en Hz y similarmente $T = 1/f$. Notamos que la frecuencia de la señal no depende de $\tau$ in $\theta$.
+           \begin{enumerate}[i)]
+               \item $f = \frac{\pi/3}{2\pi} = 1/6 $ y $ T = 6$
+               \item $f = 3/8$ y $T = 8/3$
+               \item $f = 3/(8\pi)$ y $T = 8 \pi/3 $
+           \end{enumerate}
+           
+           %\fi
+        \item Para que las señales sean iguales debe complirse que $\omega_x = \omega_y$ y además $\omega_x \tau_x +\theta_x = \omega_y \tau_y + \theta_y + 2\pi k$ con $k$ cualquier entero.
+        \begin{enumerate}[i)]
+            \item $x(t) = y(t)$
+            \item $x(t) \neq y(t)$
+            \item $x(t) \neq y(t)$
+        \end{enumerate}
+       \end{enumerate}
+    
+       
+       }
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  SEÑALES Y SISTEMAS - P3  %%%%%%%%%%%%%%%%%%%%%% 
+
+       \item Tenemos el sistema:
+    $$ g(x) = \int_{-\infty}^{x}f(t) \sum_{n = -\infty}^{\infty}sinc(t - n)dt$$
+    
+    Calcule $\frac{d g(x)}{dx}$ si $f(x) = \text{l}\!\_\!\text{l}\!\_\!\text{l}(x) $
+    
+    \textit{Hint: Piense qué valores toma $sinc(t - n)$ cuando $n$ es un entero y en particular en $n = 0$.}
+
+
+
+    
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+
+
+    \textbf{Cada sinc(x) desfasado vale 1 solo en su origen y para todos los demás enteros vale cero.}\\ Además recordando la propiedad del muestreo $\delta_a \cdot f(x) = f(a)$  podemos escribir $$g(x) = \int_{-\infty}^{x}\text{l}\!\_\!\text{l}\!\_\!\text{l}(x) = \int_{-\infty}^{x} \sum_{n = -\infty}^{\infty}\delta(x-n)$$. Podemos recordar que la integral del impulso se puede escribir como un escalón por lo que:$$g(x) =  \sum_{n = -\infty}^{\infty}u(x-n)$$. De esta forma podemos volver a derviar el sistema para llegar a que $$g(x)^{'} =\text{l}\!\_\!\text{l}\!\_\!\text{l}(x) $$}
+
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  SEÑALES Y SISTEMAS - P4  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Exprese las siguientes ecuaciones como sumas infinitas de polinomios y determine para qué valores de $|x|$ la serie converge:
+    \begin{enumerate}
+        \item  $p_1(x) = \frac{1}{1-x}$
+        \item $p_2(x) = \frac{1}{(1-x)^2}$
+    \end{enumerate}
+    \textit{HINT: Puede ser útil usar series de Taylor.}
+
+         \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+    \begin{enumerate}
+        \item Esta pregunta se puede resolver sencillamente sin usar series de Taylor, ya que sabemos que toda serie geométrica tiene solución dada por:
+        $$\sum_{n = 0}^{+\infty}a^n=\frac{1}{1-a}$$
+        Por lo tanto:
+        $$p_1(x) = \frac{1}{1-x} = 1+x+x^2+x^3+x^4+...$$
+        Además converge siempre con $|x|<1$.
+
+        \item Se puede resolver de manera similar notando que esa es la solución para la serie $\sum_{n = 0}^{+\infty}(n+1)a^n$. Sin embargo es más razonable hacerla mediante series de Taylor centrada en cero:
+        $$f(x) = f(0)+f^{\prime}(0)(x)+\frac{f^{\prime \prime}(0)(x^2)}{2!}+...+\frac{f^{(n)}(0)(x^n)}{n!}$$
+
+        Al desarrollar y reemplazar llegamos a:
+        $$p_2(x) = 1 + 2x + 3x^2+ 4x^3+5x^4+...$$
+
+        Similarmente esto converge con $\lim_{n \to \infty } \{(n+1)x^n\} = 0$  es decir $|x| <1$.
+    \end{enumerate}
+    }
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  SEÑALES Y SISTEMAS - P5  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Determine si los siguientes sistemas son causales:
+    \begin{enumerate}
+        \item $g(t) = f(t-2)$
+        \item $g(t) = f(-t)$ 
+        \item $g(t) = \int_{-5}^{5} f(\tau) d\tau$ 
+        \item $g(t) = \frac{f^2(t)}{df(t)/dt}$
+    \end{enumerate}
+
+    \ifanswers
+    {\color{red}    \textbf{Solución:}
+    \begin{enumerate}
+        \item La salida en el instante $t$ requiere conocer la información de la entrada en $t-2 < t$ (información pasada), por lo que el sistema es \textbf{causal}.
+        \item Si $t<0$, se requiere conocer la entrada del sistema en $t>0$ (información futura), por lo que el sistema \textbf{no es causal}.
+        \item Si se quiere conocer la salida del sistema para $t \in (-\infty,5)$, se requerirá conocer la entrada para valores futuros (hasta $t=5$), por lo que el sistema \textbf{no es causal}.
+        \item La salida del sistema para el instante $t$ depende de la derivada de la entrada en el $t$. Como la derivada es un operador local de la función que depende de un límite sobre la entrada en $t^{+}>t$, el sistema es \textbf{no causal}.
+    \end{enumerate}}
+    
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  SEÑALES Y SISTEMAS - P6  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Considere un sistema con entrada $x(t)$ y salida $y(t)$, el cual viene dado por:
+    \begin{align*}
+        y(t) &= \sum_{n=-\infty}^{\infty} x(t) \delta(t-n T)
+    \end{align*}
+    
+    \begin{enumerate}
+        \item Identifique (justificadamente) si el sistema es lineal y si el sistema es invariante.
+        \item Si el sistema presenta como entrada $x(t) = \cos(2\pi t)$, indique la salida $y(t)$ que se generaría para $T=1, \frac{1}{2}, \frac{1}{4}, \frac{1}{8}$.
+    \end{enumerate}
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+
+    \begin{enumerate}
+        \item El sistema es lineal porque
+        \begin{align*}
+            T[ax_1(t)+bx_2(t)] &= \sum_{n=-\infty}^{\infty} [ax_1(t)+bx_2(t)]\delta(t-nT) \\
+            &= a \sum_{n=-\infty}^{\infty} x_1(t) \delta(t-n T) + b \sum_{n=-\infty}^{\infty} x_2(t) \delta(t-n T) \\
+            &= a T[x_1(t)] + b T[x_2(t)]
+        \end{align*}
+        Por otro lado, el sistema es variante porque si $x_1(t)=\sin(2\pi t/T)$, la salida será $y_1(t)=0$. Sin embargo, si $x_2(t)=\sin(\frac{2\pi}{T} t+\frac{\pi}{2}) = \cos(\frac{2\pi}{T}t) \neq y_1(t+\frac{\pi}{2})=0$.
+        \item La salida está dada por
+        \begin{align*}
+            y(t) &= \sum_{n=-\infty}^{\infty} \cos(2\pi t) \delta(t-n T)
+        \end{align*}
+
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{P13/y_T_1.png}
+            \caption{$y(t)$ para $T=1$}
+            \label{y1}
+        \end{figure}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{P13/y_T_05.png}
+            \caption{$y(t)$ para $T=1/2$}
+            \label{y1}
+        \end{figure}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{P13/y_T_025.png}
+            \caption{$y(t)$ para $T=1/4$}
+            \label{y1}
+        \end{figure}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{P13/y_T_0125.png}
+            \caption{$y(t)$ para $T=1/8$}
+            \label{y1}
+        \end{figure}
+    \end{enumerate}
+    
+    }
+
+        \fi
+%%%%%%%%%%%%%%%%%%%%%%  SEÑALES Y SISTEMAS - P7  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item  Considere el sistema
+
+    $$
+    y(t)=x(t-\tau)
+    $$
+    
+    donde $y(t)$ es la salida, $x(t)$ la entrada y $\tau \in \mathbb{R}$.
+    
+    Determine si el sistema es invertible. En caso positivo, explicite cual sería el sistema inverso. En caso negativo, demuestre que el sistema no es invertible.
+
+    \ifanswers
+    {\color{red}
+    \textbf{Solución: }
+
+    (a) Observando que el sistema todo lo que hace es desplazar la señal de entrada en una cantidad $\tau$ hacia la derecha, el sistema inverso tiene que ser aquel que desplaza la señal la misma cantidad hacia la izquierda y vuelve a centrar la entrada en su posición original, es decir
+        
+        $$
+        y^{-1}(t)=x(t+\tau) 
+        $$
+        
+        Por lo tanto el sistema es invertible $\rightarrow 1$ pt. Esta es la respuesta corta e intuitiva.
+        
+        La respuesta formal, es la siguiente. Observamos que el sistema se puede describir por la convolución $y=x * \delta_{\tau}$, donde $\delta_{\tau}$ denota un impulso desfasado en $\tau$. Deducimos entonces que la respuesta al impulso del sistema es
+        
+        $$
+        h=\delta_{\tau}
+        $$
+        
+        Para que el sistema sea invertible, tiene que cumplirse $h * h^{-1}=\delta$. Usando las propiedaes de la convolución del impulso, entonces queda claro que:
+        
+        $$
+        h^{-1}=\delta_{-\tau} 
+        $$
+        
+        dado que
+        
+        $$
+        \delta_{\tau} * \delta_{-\tau}=\delta
+        $$
+        
+        Entonces concluímos que
+        
+        $$
+        y^{-1}(t)=x(t+\tau)
+        $$
+    
+    }
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  SEÑALES Y SISTEMAS - P8  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Considere el sistema
+
+    $$
+    y(t)=x(t) \cos (2 \pi u t)
+    $$
+    
+    donde $y(t)$ es la salida, $x(t)$ la entrada y $u \in \mathbb{R}$.
+    
+    i. Determine si el sistema es estable.
+    
+    ii. Determine si el sistema tiene memoria.
+    
+    iii. Determine si el sistema es lineal.
+    
+    iv. Determine si el sistema es invariante.
+    
+    v. Determine si el sistema es causal.
+
+    \ifanswers
+    {\color{red}
+    \textbf{Solución: }
+
+    i. Si la entrada $x(t)$ es acotada, como $|\cos (2 \pi u t)| \leq 1$ entonces la salida estará acotada, como máximo, al mismo valor de la entrada. Por lo tanto el sistema es estable .
+    
+    ii. Dado que $y(t)$ solo depende del valor presente de $t$, el sistema no tiene memoria .
+    
+    iii. Homogeneidad:
+    
+    $$
+    \alpha x(t) \rightarrow \alpha x(t) \cos (2 \pi u t)=\alpha y(t)
+    $$
+    
+    Superposición:
+    
+    $$
+    x_{1}(t)+x_{2}(t) \rightarrow\left(x_{1}(t)+x_{2}(t)\right) \cos (2 \pi u t)=x_{1}(t) \cos (2 \pi u t)+x_{2}(t) \cos (2 \pi u t)=y_{1}(t)+y_{2}(t)
+    $$
+    
+    Por lo tanto, el sistema es lineal .
+    
+    iv. Invariancia:
+    
+    $$
+    x(t-\tau) \rightarrow x(t-\tau) \cos (2 \pi u t)
+    $$
+    
+    Pero la salida desfasada es
+    
+    $$
+    y(t-\tau)=x(t-\tau) \cos (2 \pi u(t-\tau))
+    $$
+    
+    Como ambas expresiones no son iguales, el sistema es variante.
+    
+    v. Como el sistema no depende de valores futuros de la entrada el sistema es causal .
+    
+    Por ejemplo, para el tiempo $t=1$, entonces
+    
+    $y(1)=x(1) \cos (2 \pi u 1)$.
+    
+    }
+    \fi
+\end{enumerate}
+
+
+\subsection*{Gráficos}
+
+\begin{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%  GRÁFICOS - P1  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Grafique la función $f^{'}(x)$ si:
+    $$ f(x) = [u(x + \frac{\pi}{2}) + u(x)]*\cos^2(x)$$
+     \textit{OJO: El operador $*$ es la convolución.}
+
+
+
+         
+    \ifanswers
+        {\color{red}
+        \textbf{Solución:}
+    
+    Comenzamos con la propiedad de derivación de convolución tal que:
+         $$f^{\prime}(x) = [u(x + \frac{\pi}{2}) + u(x)]^{\prime}*\cos^2(x) $$ Dado que la derivada del escalón es un $\delta$. Tenemos que:
+         $$f^{\prime}(x) = [\delta(x + \frac{\pi}{2}) + \delta(x)]*\cos^2(x) $$ Por propiedad del cedazo esto es lo mismo que: 
+         $$f^{\prime}(x) = \cos^2(x + \frac{\pi}{2}) + \cos^2(x) $$      Recordamos que $\cos^2(x + \frac{\pi}{2}) = \sin^2(x)$ Por lo que $$f^{\prime}(x) = \sin^2(x) + \cos^2(x) = 1 $$ El gráfico es constante en 1.  }
+    
+         \fi
+%%%%%%%%%%%%%%%%%%%%%%  GRÁFICOS - P2  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Tenemos las función $f(x) = x^3$, grafique:
+        \begin{enumerate}
+            \item $f(2x)$ y $f(x/2)$
+            \item $f(-(x- 3))$
+            \item $3 + f(2(x- 3))$
+        \end{enumerate}
+    
+        \ifanswers
+     {\color{red}\textbf{Solución:}
+         \begin{figure}[H]
+            \centering
+            \includegraphics[width=1\textwidth]{P10/img_1.png}
+            \caption{Resultado gráfico}
+            \label{gato-sol}
+        \end{figure}}
+        \fi
+
+    
+\end{enumerate}
+
+\subsection*{Simetrías y funciones importantes}
+
+\begin{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%  SIMETRÍAS Y FUNCIONES IMPORTANTES - P1  %%%%%%%%%%%%%%%%%%%%%% 
+
+
+    \item Determine una expresión analítica para la señal:
+    
+             \begin{center} {\includegraphics[width=100mm]{trig.png}} \end{center}
+    
+        
+        \ifanswers
+        {\color{red}
+        \textbf{Solución:}
+    
+    Son triángulos desfasados cada 5, por lo que se puede entender como que en cada múltiplo de 5 hay un $\delta(x)$ lo que sería un peine de impulsos:
+    
+        $$\frac{1}{5}\sha(\frac{x}{5})*\wedge(x)$$
+        }
+    
+        \fi
+
+%%%%%%%%%%%%%%%%%%%%%%  SIMETRÍAS Y FUNCIONES IMPORTANTES - P2 %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Se tiene la señal $f(x)$:
+
+         \begin{center} {\includegraphics[width=80mm]{P10/col.png}} \end{center}
+    Exprese $f(x)$ como una suma de señales importantes.
+
+    
+    
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+
+ Se puede resolver de dos maneras por tanteo:
+    $$f(x) = u(x-1/2) -u(-(x + 1/2))$$ o de otra manera más fácil de ver:
+    $$ f(x) = sgn(x)(1- \sqcap(x))$$
+    }
+
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  SIMETRÍAS Y FUNCIONES IMPORTANTES - P3  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Demuestre que la señal $\ln(x)$ se puede descomponer en una parte par ($P(x)$) y una parte impar ($I(x)$) que resulta en
+    \begin{align*}
+        P(x) &= \ln(|x|)+i\frac{\pi}{2} \\
+        I(x) &= -\frac{i \pi}{2} sgn(x)
+    \end{align*}
+    \emph{Hint: } Puede ser útil considerar $x = \ |x| sgn(x)$.
+
+    \ifanswers
+   {\color{red} \textbf{Solución:}
+    
+    Considerando $x = |x| sgn(x)$ y las expresiones generales de parte par e impar de una función, se tendrá:
+    \begin{align*}
+        P(x) &= \frac{f(x)+f(-x)}{2} = \frac{\ln(|x|sgn(x))+\ln(|-x|sgn(-x))}{2} \\
+        I(x) &= \frac{f(x)-f(-x)}{2} = \frac{\ln(|x|sgn(x))-\ln(|-x|sgn(-x))}{2} \\
+    \end{align*}
+    Por propiedad de logaritmos, se sabe que $\ln(|x|sgn(x)) = \ln(|x|)+\ln(sgn(x))$, por lo que
+    \begin{align*}
+        P(x) &=  \frac{\ln(|x|)+\ln(sgn(x))+\ln(|-x|)+\ln(sgn(-x))}{2} \\
+        I(x) &=  \frac{\ln(|x|)+\ln(sgn(x))-\ln(|-x|)-\ln(sgn(-x))}{2} \\
+    \end{align*}
+
+    Se puede notar que $|-x|=|x|$. Además, si $x>0$, se tiene que $\ln(sgn(x)) = \ln(1) = 0$ y $\ln(sgn(-x)) = \ln(-1) = i \pi$. Análogamente, cuando $x<0$, se tiene que $\ln(-1) = \ln(-1) = i \pi$ y $\ln(sgn(-x)) = \ln(1) = 0$. Luego, podemos identificar que
+    \begin{align*}
+        P(x) &=  \frac{2\ln(|x|)+i\pi}{2} \\
+        I(x) &=  \frac{-i\pi}{2} sgn(x), \\
+    \end{align*}
+    lo que demuestra lo pedido.}
+    \fi
+
+%%%%%%%%%%%%%%%%%%%%%%  SIMETRÍAS Y FUNCIONES IMPORTANTES - P4  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Una señal $f(x)$ se puede descomponer en una parte par $P(x)$ y una parte impar $I(x)$. Demuestre que:
+    \begin{align*}
+        \int_{-\infty}^{\infty} f^2(x) dx &= \int_{-\infty}^{\infty} P^2(x) dx + \int_{-\infty}^{\infty} I^2(x) dx
+    \end{align*}
+
+    \ifanswers
+   {\color{red} \textbf{Solución:}
+    
+    La señal se puede expresar como $f(x) = P(x)+I(x)$. Luego,
+    \begin{align*}
+        f^2(x) &= P^2(x)+I^2(x)+2 P(x) I(x) \\
+        \int_{-\infty}^{\infty} f^2(x) dx &= \int_{-\infty}^{\infty} P^2(x) dx + \int_{-\infty}^{\infty} I^2(x) dx + 2\int_{-\infty}^{\infty} P(x) I(x) dx
+    \end{align*}
+    Notamos que $P(x)I(x)$ presenta simetría impar, por lo que la integral de esta expresión sobre un dominio simétrico es igual a cero. Luego,
+    \begin{align*}
+        \int_{-\infty}^{\infty} f^2(x) dx &= \int_{-\infty}^{\infty} P^2(x) dx + \int_{-\infty}^{\infty} I^2(x) dx,
+    \end{align*}
+    lo que demuestra lo pedido.}
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  SIMETRÍAS Y FUNCIONES IMPORTANTES - P5  %%%%%%%%%%%%%%%%%%%%%% 
+
+     \item Calcule el área de la función $\alpha^2 \sqcap (x\alpha)$ con $\alpha \in \mathbb{R} ^+$ .
+    \\
+        \ifanswers
+    {\color{red} 
+    
+    \textbf{Solución:}Es fácil ver que tenemos una función rectangular centrada en cero de ancho $1/\alpha$. De igual manera al tener altura $\alpha^2$ el área debe ser $1/\alpha \cdot \alpha^2 = \alpha$}
+
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  SIMETRÍAS Y FUNCIONES IMPORTANTES - P6  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Determine la paridad de la convolución de 
+    \begin{enumerate}
+        \item Una función par y una impar
+        \item Dos funciones pares
+        \item Dos funciones impares
+    \end{enumerate}
+    Hint: Le puede ser útil la siguiente propiedad. Si $f(t)\ast g(t) = c(t)$ entonces $f(at)\ast g(at) = \frac{1}{|a|}c(at)$. Intente demostrarla
+ \ifanswers
+    {\color{red} 
+    
+    \textbf{Solución:}
+
+    Por la hint con un escalamiento $a = -1$, se cumple en los tres casos que si $c(t) = f(t) \ast g(t)$ $c(-t) = \frac{1}{|-1|}f(-t) \ast g(-t) = f(-t) \ast g(-t)$
+
+    \begin{enumerate}
+        \item Sin pérdida de generalidad, suponga que $f$ es impar y $g$ par. En este caso $c(-t) = f(-t) \ast g(-t) = -f(t) \ast g(t) = -c(t)$. Por lo que $c(t)$ es impar
+        \item Si ambas son pares $c(-t) = f(-t) \ast g(-t) = f(t) \ast g(t) = c(t)$, por lo que la convolución es par.
+        \item Si ambas son impares $c(-t) = \frac{1}{|-1|}f(-t) \ast g(-t) = -f(t) \ast -g(t) = f(t) \ast g(t) = c(t)$, es decir, la convolución acá es par.
+    \end{enumerate}
+    
+    }
+
+    \fi
+
+    
+\end{enumerate}
+
+\subsection*{Impulso}
+
+\begin{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%  IMPULSO - P1  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Sea
+    \begin{align*}
+        g_{\theta}(x) &= \frac{3(\theta-|x|)^2}{2\theta^3} \sqcap\left(\frac{x}{2\theta}\right).
+    \end{align*}
+    Considere $g_{\theta}$ como función aproximante de $\delta(x)$ para calcular
+    \begin{align*}
+        \int_{-\infty}^{\infty} \delta''(x)dx
+    \end{align*}
+
+    
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+
+    La integral pedida es igual a
+    \begin{align*}
+        \int_{-\infty}^{\infty} \delta''(x)dx &= \lim_{\theta \rightarrow 0} \int_{-\infty}^{\infty} \frac{d}{dx}\left\{ -\frac{3}{\theta^3}(\theta-|x|)sgn(x)\sqcap(x/2\theta)\right\} dx
+    \end{align*}
+    Es importante notar que la derivada de $g_{\theta}(x)$ en $x=\pm \theta$ es 0, por lo que no hay impulsos en esas posiciones. Así,
+    \begin{align*}
+        \int_{-\infty}^{\infty} \delta''(x)dx &= \lim_{\theta \rightarrow 0} \int_{-\infty}^{\infty} \left\{ \frac{3}{\theta^3}\sqcap(x/2\theta)-\frac{6}{\theta^2}\delta(x) \right\}dx \\
+        &= \lim_{\theta \rightarrow 0} \left\{\frac{6}{\theta^2}-\frac{6}{\theta^2}\right\} = 0
+    \end{align*}
+    
+    
+    }
+
+    \fi
+
+%%%%%%%%%%%%%%%%%%%%%%  IMPULSO - P2  %%%%%%%%%%%%%%%%%%%%%% 
+
+
+    \item Demuestre que
+    \begin{align*}
+        \frac{1}{3}\uparrow\uparrow\left(\frac{x}{\sqrt{3}}\right)=\sqrt{3}\delta(4x^3-3x)-\frac{1}{\sqrt{3}}\delta(x)
+    \end{align*}
+
+    \ifanswers
+  {\color{red}  \textbf{Solución:}
+
+    Se puede apreciar que $4x^3-3x$ tiene como raíces los siguientes valores: $0$, $\frac{\sqrt{3}}{2}$, $-\frac{\sqrt{3}}{2}$, por lo que $\delta(4x^3-3x)$ se puede expandir como
+    \begin{align*}
+        \delta(4x^3-3x) &= \frac{\delta(x)}{3} + \frac{\delta(x-\frac{\sqrt{3}}{2})}{6}+\frac{\delta(x+\frac{\sqrt{3}}{2})}{6}
+    \end{align*}
+    
+    Al reemplazar este resultado en la parte derecha de la ecuación, se llega a
+    \begin{align*}
+        \sqrt{3}\frac{\delta(x)}{3}+\sqrt{3}\frac{\delta(x-\frac{\sqrt{3}}{2})}{6}+\sqrt{3}\frac{\delta(x+\frac{\sqrt{3}}{2})}{6}-\frac{1}{\sqrt{3}}\delta(x) &= \frac{\sqrt{3}}{6}\delta\left(\frac{x}{\sqrt{3}}-\frac{1}{2}\right)+\frac{\sqrt{3}}{6}\delta\left(\frac{x}{\sqrt{3}}+\frac{1}{2}\right) \\
+        &= \frac{1}{3}\uparrow\uparrow\left(\frac{x}{\sqrt{3}}\right),
+    \end{align*}
+    lo que demuestra lo pedido.}
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  IMPULSO - P3  %%%%%%%%%%%%%%%%%%%%%% 
+  
+    \item Resuelva los siguientes problemas: 
+\begin{enumerate}
+    \item Demuestre:
+    $$ \frac{d}{dx}[u(x - 1/2) + u(x+1/2)] = \delta(x^2 - 1/4)$$
+     \item Calcule la siguiente integral:
+$$ \int_{-\infty}^{\infty}  \text{l}\!\_\!\text{l}\!\_\!\text{l}(\frac{x}{a})\sqcap(\frac{x}{5a}) dx $$
+\end{enumerate}
+
+
+    
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+    
+    Recordamos que el delta toma valor distinto de cero solamente en $\delta(0)$. De esta manera vaemos que $x^2 -1/4 = 0$ se resulve en $x = -1/2 $ y $x = 1/2$ por lo que esta expresión es equivalente a: $$\delta(x^2 - 1/4) = \delta_{1/2} + \delta_{-1/2} $$. Es luego trivial ver que al derivar la expresión de la izquierda se llega de igual manera a $\delta_{1/2} + \delta_{-1/2}$. 
+    
+
+    Recordemos que el  \text{l}\!\_\!\text{l}\!\_\!\text{l}(ax) se puede escribir como $$\sum_{n = -\infty}^{\infty}\frac{1}{|a|}\delta(x-\frac{n}{a})$$. Por otro lado el $\sqcap(\frac{x}{5a})$ corresponde a un rect de ancho 5a. Por lo que al multiplicar ambas funciones el problema se reduce a:
+$$a\sum_{n = -\infty}^{\infty}\int_{-5a/2}^{5a/2}\delta(x-na)dx$$. Recordando que según la definción del delta de Dirac se tiene que $$\int_{-\infty}^{\infty}\delta(x)dx = 1$$. Sin embargo nuestra expresión cada delta está ponderado por $a$. Esto generá que la syma de los 5 impulsos que caben dentro del rect tengan área $5a$.
+    }
+
+    \fi
+    
+\end{enumerate}
+
+\subsection*{Sistemas Lineales y Convolución}
+
+
+
+\begin{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P1  %%%%%%%%%%%%%%%%%%%%%% 
+
+
+    \item A continuación, se presenta la señal \emph{Gato}(x) en forma gráfica:
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{P10/gato.png}
+        \caption{Señal \emph{Gato}(x)}
+        \label{gato}
+    \end{figure}
+
+    \begin{enumerate}
+        \item Exprese \emph{Gato}(x) como una combinación de señales conocidas en el curso.
+        \item Encuentre el resultado gráfico de convolucionar la señal \emph{Gato}(x) con la señal sgn(x).
+    \end{enumerate}
+
+    \ifanswers
+    {\color{red} \textbf{Solución:}
+
+    Una posible solución consiste en considerar:
+    \begin{align*}
+        \emph{Gato}(x) &= \sqcap \left(\frac{x-5}{8}\right)+ \sqcap \left(\frac{x-5}{6}\right)+\wedge \left(2(x-2.5)\right)+\wedge \left(2(x-3.5)\right)+\sqcap \left(\frac{x-10.5}{3}\right) \left( 4-\frac{x}{3} \right)
+    \end{align*}
+
+    Al convolucionar la señal \emph{Gato}(x) con la señal sgn(x), se tendrá el siguiente gráfico:
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{P10/sol_gato.png}
+        \caption{Resultado de convolución}
+        \label{gato-sol}
+    \end{figure}}
+
+    \fi
+%%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P2  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Determine si el sistema $g(x) = f(x)^{\frac{1}{5}} + 4$ es LTI
+
+    
+    \ifanswers
+    {\color{red} \textbf{Solución:}
+     Podemos probar que no se cumple homogenidad o superposición y de esta manera sabremos que no es lineal. Es fácil notar que $\alpha g(x) = \alpha f(x)^{\frac{1}{5}} + \alpha 4 $ y que $\mathcal{L}\{ \alpha f(x) \} = \alpha^{1/5}f(x) + 4$. Comparando ambos resultados es evidente que el sistema no es homogéneo y por ende es \textbf{NO LINEAL}.}
+        
+       
+        {\color{red}
+         Invariante\\
+        Para esto calculamos $g(x-a) = f(x-a)^{1/5} +4$, por otro lado $\mathcal{L}\{f(x-a)\} =f(x-a)^{1/5} +4$. De esta forma queda demostrado que el sistema \textbf{ES INVARIANTE}.}
+
+
+    \fi
+
+%%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P3  %%%%%%%%%%%%%%%%%%%%%% 
+
+     \item Determine si el sistema $g(t) = h(t)f(t)$ es LTI
+     \ifanswers
+       {\color{red} \textbf{Solución:}
+   
+
+
+                Homogeneidad: $\alpha L\{x(t)\} = L\{\alpha x(t)\}$\\ \\
+                Para comenzar, desarrollamos el lado izquierdo de la ecuación:
+                \begin{center}
+                $\alpha L\{x(t)\} = \alpha(f(t)h(t)) = \alpha f(t) h(t)$
+                \end{center}
+                Luego, desarrollamos el lado derecho:
+                \begin{center}
+                $ L\{\alpha x(t)\} = \alpha h(t)f(t) $
+                \end{center}
+            Notamos que los resultados obtenidos son iguales, por lo tanto \textbf{se cumple homogeneidad}.
+
+           Superposici\'on: $L\{x(t) + m(t)\} = L\{x(t)\} + L\{m(t)\}$\\
+            
+            Para comenzar, desarrollamos el lado izquierdo de la ecuación:
+                \begin{center}
+                    $L\{f(t) + m(t)\} = h(t)[f(t)+m(t)] = h(t)f(t) + h(t)m(t) $
+                \end{center}
+            Luego, desarrollamos el lado derecho:
+                \begin{center}
+                    $L\{x(t)\} + L\{m(t)\} = h(t)x(t) + h(t)m(t)$
+                \end{center}
+                
+            Notamos que los resultados obtenidos son iguales, por lo tanto \textbf{se cumple superposición}.
+    
+        Finalmente, ya que se cumple linealidad y homogeneidad, se conluye que \textbf{el sistema es lineal.}
+        Invariancia: $L\{x(t-\alpha)\} = g(t-\alpha)$
+        
+        Para comenzar tomamos el caso de que el Delay se aplique a la señal de entrada:
+        
+        $$
+        \xymatrix{*+<1em>{f(t)} \ar[r] & *+[F]\txt{Retraso en a} \ar[r]& f(t-a) \ar[r] & *+[F]\txt{L\{f(t-a)\}} \ar[r] & f(t-a)h(t)}
+        $$
+        Luego, tomamos el caso de que el delay se aplique a la señal de salida:\\
+        $$
+        \xymatrix{*+<1em>{f(t)} \ar[r] & *+[F]\txt{L\{f(t)\}} \ar[r]& f(t)h(t) \ar[r] & *+[F]\txt{Retraso en a} \ar[r] & f(t-a)h(t-a)}
+        $$
+        Dado que la señal de salida no es la misma si el retraso se aplica a la entrada o a la salida, podemos decir que \textbf{el sistema es variante}
+   }
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P4  %%%%%%%%%%%%%%%%%%%%%% 
+
+
+    \item Tome las funciones:
+        $$x(t) = e^{-3 t} \cos {(2 \pi  t)}\cdot u(t) \quad  \quad h(t) = 2 e^{-2t}u(t)$$
+         Demuestre que para $t \geq 0$ se cumple:
+         $$\{x(t)*h(t)\} = \frac{2e^{-3t}(e^t-\cos{(2\pi t)} + 2\pi\sin{(2 \pi t)})}{1 + 4 \pi^2}$$
+
+    \ifanswers
+        {\color{red}
+        
+        \textbf{Solución:}
+    
+         Planteamos la convolución:
+    
+    $$ \int_{-\infty}^{\infty}\cos{(2\pi \tau)}e^{-3\tau}u(\tau) \cdot 2 e^{-2(t-\tau)}u(t-\tau)d \tau$$
+    
+    Al ver esta expresión se puede notar que un escalón elimina todo lo que está bajo 0 y el otro todo lo que está sobre $t$ por lo que puede definir mi integral como:
+    
+    $$ \int_{0}^{t}\cos{(2\pi \tau)}e^{-3\tau} \cdot 2 e^{-2(t-\tau)}d \tau$$
+    
+    Luego puedo sacar todos los términos constantes:
+    
+    $$ 2e^{-2t}\int_{0}^{t}\cos{(2\pi \tau)}e^{-\tau} d\tau$$
+    
+    Ahora podemos reemplazar el coseno como:
+    
+    $$\cos{(2\pi\tau)} = \frac{e^{j2\pi\tau}+ e^{-j2\pi\tau}}{2}$$
+    
+    Por lo tanto al reemplazar en la integral llegamos a:
+    
+    $$ e^{-2t}\int_{0}^{t}(e^{j2\pi\tau} + e^{-j2\pi\tau})e^{-\tau} d\tau $$
+    Luego reordenando:
+    $$ e^{-2t}\int_{0}^{t}e^{(j2\pi-1)\tau} + e^{(-j2\pi-1)\tau}  d\tau $$
+    
+    Esta expresión es sencilla de integrar al ser solamente una exponencial, además que al evaluar en 0 la exponencial se hace 1. Integrando esta expresión y evaluando en sus límites se llega a:
+    
+    $$ e^{-2t} ( \frac{e^{(-2\pi j - 1)t} -1}{-2\pi j - 1} +  \frac{e^{(2\pi j - 1)t }-1}{2\pi j - 1}  )$$
+    
+    Reordenando y reemplazando las exponenciales complejas por senos y cosenos:
+    
+    $$ e^{-2t} ( e^{-t}\frac{\cos{(2 \pi t)} - j\sin{(2 \pi t)}}{-2\pi j - 1} + e^{-t}\frac{\cos{(2 \pi t)} + j\sin{(2 \pi t)}}{2\pi j - 1}  - \frac{2}{1+4\pi^2} )$$
+    
+    Expresando todo bajo el denominador común $1+4\pi^2$ es sencillo expandir la expresión y simplificar los términos para llegar a:
+    
+         $$\{x(t)*h(t)\} = \frac{2e^{-3t}(e^t-\cos{(2\pi t)} + 2\pi\sin{(2 \pi t)})}{1 + 4 \pi^2}$$ 
+
+         }
+    
+         \fi
+%%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P5  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item  Un circuito eléctrico se puede modelar como un sistema LTI que presenta una respuesta al impulso dada por:
+    \begin{align*}
+        h(t) &= \frac{1}{RC} e^{-\frac{1}{RC}t}u(t),
+    \end{align*}
+    donde $R$ y $C$ son parámetros del circuito. El circuito está diseñado para operar sobre una señal de entrada de la forma:
+    \begin{align*}
+        x(t) &= A\cos(k\omega_0 t),
+    \end{align*}
+    donde $\omega_0 = \frac{1}{RC}$, mientras que $A$ y $k$ son constantes arbitrarias. 
+    \\ \\
+    El objetivo de este ejercicio es deducir el efecto que tiene el sistema sobre una sinusoide de amplitud constante a medida que aumenta su frecuencia ($k\omega_0$). Para lograr esto, responda las siguientes preguntas:
+
+    
+    \begin{enumerate}
+        \item Indique si el sistema es estable, causal y tiene memoria. Justifique sus respuestas.
+        \item Encuentre la salida analítica del sistema para las siguientes entradas:
+        \begin{enumerate}
+            \item $x_1(t) = A$
+            \item $x_2(t) = A\cos(0.01\omega_0 t)$
+            \item $x_3(t) = A\cos(100\omega_0 t)$
+        \end{enumerate}
+        \textit{HINT: Puede ser conveniente hacer el cálculo para un caso general con frecuencia $k \omega_0$ y luego evaluar para cada caso particular.}
+        \item A partir de los resultados obtenidos, ¿cuál es el efecto que presenta el sistema sobre una sinusoide a medida que aumenta su frecuencia?
+    \end{enumerate}
+    
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+    \begin{enumerate}
+        \item Como $h(t) = 0$ para $t<0$, el sistema es \textbf{causal}. Por otro lado, es evidente que $\int_{-\infty}^{\infty} |h(\tau)| d\tau < \infty$ al tratarse de una señal que está acotada y decae exponencialmente a cero, por lo que el sistema es \textbf{estable}. Como la salida del sistema está dado por la convolución entre la entrada y una respuesta al impulso con $h(t)=0$ para $t<0$, la salida dependerá de una integral que depende de valores pasados de la entrada, por lo que el sistema tiene \textbf{memoria}.
+        \item La salida del sistema será la convolución entre la entrada y la respuesta al impulso. Es decir, $g(t)=(f*h)(t)$. Se desarrolla la salida para un caso general con $x(t)=A\cos(k\omega_0 t)$:
+        \begin{align*}
+            g(t) &= (f*h)(t) = \int_{-\infty}^{\infty} x(t-\tau)h(\tau)d\tau \\
+            &= \frac{A}{RC}\int_{-\infty}^{\infty} \cos(k\omega_0(t-\tau))e^{-\frac{1}{RC}\tau} u(\tau) d\tau
+        \end{align*}
+        Recordando la identidad $\cos(\theta)=\frac{e^{j\theta} + e^{-j\theta}}{2}$, la expresión de convolución queda como:
+        \begin{align*}
+            g(t) &= \frac{A}{2RC} \int_{0}^{\infty} (e^{j(k\omega_0[t-\tau])}+e^{-j(k\omega_0[t-\tau])})e^{-\frac{1}{RC}\tau}d\tau \\
+            &= \frac{A}{2RC} \int_{0}^{\infty} (e^{-\frac{\tau}{RC}+j(k\omega_0[t-\tau])}+e^{-\frac{\tau}{RC}-j(k\omega_0[t-\tau])})d\tau \\
+            &= \frac{A}{2RC}\left(\frac{e^{jk\omega_0 t}}{\frac{1}{RC}+jk\omega_0} + \frac{e^{-jk\omega_0 t}}{\frac{1}{RC}-jk\omega_0} \right)
+        \end{align*}
+        Juntando los términos fraccionarios se llega a:
+        \begin{align*}
+            g(t) &= \frac{A}{2RC}\left( \frac{e^{j k\omega_0 t} \left( \frac{1}{RC}-jk\omega_0\right)+e^{-j k\omega_0 t} \left( \frac{1}{RC}+jk\omega_0\right)}{\frac{1}{R^2C^2}+k^2\omega_0^{2}} \right) \\
+            &= \frac{A}{2RC}\left( \frac{\frac{2}{RC}\frac{(e^{jk\omega_0t}+e^{-jk\omega_0 t})}{2}-2k\omega_0 j\frac{(e^{jk\omega_0t}-e^{-jk\omega_0 t})}{2}}{\frac{1}{R^2C^2}+k^2\omega_0^{2}} \right) \\
+            &= \frac{A}{2RC}\left( \frac{\frac{2}{RC}\cos(k \omega_0 t)+2k\omega_0 \sin(k\omega_0 t)}{\frac{1}{R^2C^2}+k^2\omega_0^{2}} \right) \\
+            &= A\frac{\cos(k\omega_0)+k\omega_0 RC \sin(k \omega_0 t)}{1+(RC k \omega_0)^2} = A \frac{\cos(k\omega_0 t)+k\sin(k\omega_0 t)}{1+k^2}
+        \end{align*}
+        El enunciado pide las salidas para $k=0$, $k=\frac{1}{100}$ y $k=100$. Usando el resultado general, se llega a:
+        \begin{enumerate}
+            \item $g_1(t) = A = x_1(t)$
+            \item $g_2(t) = A\frac{\cos(0.01\omega_0 t)+0.01\sin(0.01\omega_0 t)}{1+0.01^2} \approx A\cos(0.01 \omega_0 t) = x_2(t)$
+            \item $g_3(t) = A\frac{\cos(100\omega_0 t)+100\sin(100\omega_0 t)}{1+100^2}\approx A\frac{1}{100}\sin(100\omega_0 t) \approx 0$
+        \end{enumerate}
+        \item Para frecuencias mucho menor a $\omega_0$, el sistema replica la entrada en la salida (aproximadamente). Por otro lado, para frecuencias mucho mayor a $\omega_0$, el sistema entrega una salida con un retardo de $90$ grados (el coseno se convierte en seno) y con una gran atenuación (que eventualmente se puede aproximar a cero). Lo anterior implica que el sistema filtra sinusoides de alta frecuencia y deja pasar las de baja frecuencia (en torno a $\omega_0$). En el curso de circuitos eléctricos se estudia en mayor detalle este sistema.
+    \end{enumerate}
+    }
+    \fi
+%\end{enumerate}
+
+        %%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P6  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Se obtienen las siguientes muestras de un sistema LTI, donde $f(t)$ es la entrada, $g(t)$ la salida, y $x_1(0)$, $x_2(0)$ son las condiciones iniciales. 
+    
+    \begin{table}[!h]
+    \centering
+    \begin{tabular}{cccc}
+    $f(t)$ & $x_1(0)$ & $x_2(0)$ & $g(t)$             \\
+    $0$    & $1$      & $-1$      & $e^{-t}u(t)$       \\
+    $0$    & $2$      & $1$       & $e^{-t}(3t+2)u(t)$ \\
+    $u(t)$ & $-1$     & $-1$      & $2u(t)$           
+    \end{tabular}
+    \end{table} 
+    
+
+
+    Determine $y(t)$ cuando la entrada al sistema es un $\sqcap(x/2)$ y las condiciones iniciales son nulas.
+    \\
+
+        \ifanswers
+    {\color{red} \textbf{Solución:}
+    Como el sistema es LTI, se podrá hacer combinaciones lineales de las columnas, como muestra la siguiente tabla
+
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% Beamer presentation requires \usepackage{colortbl} instead of \usepackage[table,xcdraw]{xcolor}
+\begin{table}[H]
+\centering
+\begin{tabular}{ccccc}
+{\color[HTML]{FE0000} }                             & {\color[HTML]{FE0000} $f(t)$}            & {\color[HTML]{FE0000} $x_1(0)$} & {\color[HTML]{FE0000} $x_2(0)$} & {\color[HTML]{FE0000} $g(t)$}                               \\
+{\color[HTML]{FE0000} $r_1$}                        & {\color[HTML]{FE0000} $0$}               & {\color[HTML]{FE0000} $1$}      & {\color[HTML]{FE0000} $-1$}     & {\color[HTML]{FE0000} $e^{-t}u(t)$}                         \\
+{\color[HTML]{FE0000} $r_2$}                        & {\color[HTML]{FE0000} $0$}               & {\color[HTML]{FE0000} $2$}      & {\color[HTML]{FE0000} $1$}      & {\color[HTML]{FE0000} $e^{-t}(3t+2)u(t)$}                   \\
+{\color[HTML]{FE0000} $r_3$}                        & {\color[HTML]{FE0000} $u(t)$}            & {\color[HTML]{FE0000} $-1$}     & {\color[HTML]{FE0000} $-1$}     & {\color[HTML]{FE0000} $2u(t)$}                              \\
+{\color[HTML]{FE0000} $r_4 = \frac{1}{3}(f_1+f_2)$} & {\color[HTML]{FE0000} $0$}               & {\color[HTML]{FE0000} $1$}      & {\color[HTML]{FE0000} $0$}      & {\color[HTML]{FE0000} $(t+1)e^{-t}u(t)$}                    \\
+{\color[HTML]{FE0000} $r_5 = \frac{1}{2}(r_1+r_3)$} & {\color[HTML]{FE0000} $\frac{1}{2}u(t)$} & {\color[HTML]{FE0000} $0$}      & {\color[HTML]{FE0000} $-1$}     & {\color[HTML]{FE0000} $(\frac{1}{2}e^{-t}+1)u(t)$}          \\
+{\color[HTML]{FE0000} $r_6 = r_4+r_5$}              & {\color[HTML]{FE0000} $\frac{1}{2}u(t)$} & {\color[HTML]{FE0000} $1$}      & {\color[HTML]{FE0000} $-1$}     & {\color[HTML]{FE0000} $(\frac{3e^{-t}}{2} +te^{-t}+1)u(t)$} \\
+{\color[HTML]{FE0000} $r_7 = 2(r_6+r_1)$}           & {\color[HTML]{FE0000} $u(t)$}            & {\color[HTML]{FE0000} $0$}      & {\color[HTML]{FE0000} $0$}      & {\color[HTML]{FE0000} $(e^{-t} +2te^{-t}+2)u(t)$}          
+\end{tabular}
+\end{table}
+
+    Acá la entrada se puede reescribir como $f(t) = u(t+1)-u(t-1)$. De la última fila se obtiene que la salida asociada sería 
+
+    \begin{align*}
+        y(t) &= r_7(t+1)-r_7(t-1) \\
+        &= (e^{-t-1} +2(t+1)e^{-t-1}+2)u(t+1) \\ 
+        &+ (e^{-t+1} +2(t-1)e^{-t+1}+2)u(t-1)
+    \end{align*}
+    
+    }
+
+    \fi
+
+
+     %%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P7  %%%%%%%%%%%%%%%%%%%%%%
+     \item La entrada $x(t)$ y la salida $y(t)$ de un sistema LTI se muestran en la siguiente figura. 
+     \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{P7 SISTEMA LTI Y CONV/InAndOut.jpg}
+        \caption{Entrada y Salida}
+        \label{InAndOut}
+    \end{figure}
+    Considere las siguientes entradas:
+    \begin{enumerate}[1)]
+        \item $x(t+2)$
+        \item $2x(t)+3x(-t)$
+        \item $x(t-\frac{1}{2})-x(t+\frac{1}{2})$
+        \item $\frac{dx(t)}{dt}$
+    \end{enumerate}
+    A continuación para cada una de las entradas:
+    \begin{enumerate}
+        \item Realice un bosquejo de cada salida
+        \item Escriba la salida en función de las \textit{funciones importantes} y en su forma mas reducida
+    \end{enumerate}
+    Y finalmente considere una salida $y(t)=1(t)$, encuentre la entrada y exprésela en función de las \textit{funciones importantes}.
+    \\
+        \ifanswers{\color{red} \textbf{Solución:}
+    Para la entrada 1) tenemos una salida:
+    \begin{center}
+    \includegraphics[width=0.5\textwidth]{P7 SISTEMA LTI Y CONV/sol1.jpg}
+    \end{center}
+    Que se puede escribir como $\sqcap(\frac{t+2}{2})$.
+    Para la entrada 2) tenemos una salida:
+    \begin{center}
+    \includegraphics[width=0.5\textwidth]{P7 SISTEMA LTI Y CONV/sol2.jpg}
+    \end{center}
+    Que se puede escribir como $5\sqcap(\frac{t}{2})$.
+    Para la entrada 3) tenemos una salida:
+    \begin{center}
+    \includegraphics[width=0.5\textwidth]{P7 SISTEMA LTI Y CONV/sol3.jpg}
+    \end{center}
+    Que se puede escribir como $\sqcap(t)\downuparrows(\frac{t}{2})$.
+    Para la entrada 4) tenemos una salida:
+    \begin{center}
+    \includegraphics[width=0.5\textwidth]{P7 SISTEMA LTI Y CONV/sol4.jpg}
+    \end{center}
+    Que se puede escribir como $2\updownarrows(t)$.\\
+    Para la pregunta final, como $1(x)=\sum_{n=-\infty}^{\infty}\sqcap(\frac{t+n}{2})$ podemos obtener una entrada que produce este resultado y esa entrada es $\frac{1}{2}\text{l}\!\_\!\text{l}\!\_\!\text{l}(\frac{t}{2})x(t)$) o equivalentemente $\frac{1}{2}\text{l}\!\_\!\text{l}\!\_\!\text{l}(\frac{t}{2})\triangle(t+1)$
+    }
+    \fi
+    
+ %%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P8  %%%%%%%%%%%%%%%%%%%%%% 
+ 
+    \item Sea $\mathcal{P}$ un sistema LTI. Demuestre que si $\mathcal{P}\{f(x)\} = g(x)$,  entonces $\mathcal{P}\{f'(x)\} = g'(x)$.
+        \ifanswers
+        {\color{red}\\
+        \textbf{Solución:}
+        Para esta pequeña demostración basta aplicar las propiedades de un sistema LTI y el concepto de derivada por definición. \\
+        Al ser un sistema invariante en el tiempo notamos que un desfae en la entrada implica el mismo desfase en la salida, $\mathcal{P}\{f(x+h)\} = g(x+h)$. \\
+        Además, dada su linealidad, podemos considerar como entrada una combinación lineal de la función desfasada y el opuesto de la función sin desfasar. \\
+        $$\mathcal{P}\{f(x+h) - f(x)\} = g(x+h) - g(x)$$
+        Siendo lineal, también podemos poner la expresión por el inverso del mismo factor de desplazamiento que empleamos anteriormente. 
+        $$\mathcal{P}\left\{\frac{f(x+h) - f(x)}{h}\right\} = \frac{g(x+h) - g(x)}{h}$$
+        Por último, eligiendo un $h$ muy muy pequeño podemos expresarlo de forma tal que se cumpla la derivada por definición. 
+        $$\lim_{h \to 0} \mathcal{P}\left\{\frac{f(x+h) - f(x)}{h}\right\} = \lim_{h \to 0} \frac{g(x+h) - g(x)}{h}$$
+        $$\mathcal{P}\{f'(x)\} = g'(x)$$
+        }
+    \fi
+    
+%%%%%%%%%%%%%%%%%%%%%%  SISTEMAS LINEALES Y CONVOLUCIÓN - P9  %%%%%%%%%%%%%%%%%%%%%% 
+ 
+    \item Calcule (sin aproximar):
+    $$\int_{-\infty}^{\infty}\delta'(x)dx$$
+        \ifanswers
+        {\color{red}\\
+        \textbf{Solución:}
+        Podemos reescribir la integral como una convolución convenientemente:
+        $$\int_{-\infty}^{\infty}\delta'(x)\cdot1(t-x)dx$$
+        
+        Luego sabemos que $h'(t) = {f'*g}(t) = {f*g'}(t)$. Por lo tanto:
+        $$\int_{-\infty}^{\infty}\delta'(x)dx = \int_{-\infty}^{\infty}\delta(x)\cdot1'(t-x)dx$$
+
+        Dado que la función uno es constante su derivada es cero, por lo que se obtiene:
+        $$\int_{-\infty}^{\infty}\delta'(x)dx = \int_{-\infty}^{\infty}\delta(x)\cdot0dx = 0$$
+        }
+    \fi
+
+    \end{enumerate}
+
+\subsection*{Respuesta al Impulso}
+
+\begin{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%  RESPUESTA AL IMPULSO - P1  %%%%%%%%%%%%%%%%%%%%%% 
+
+
+    \item Se tiene el sistema:
+    $$\frac{dy(t)}{dt} +2 y(t) =x(t)$$
+    \begin{enumerate}
+        \item Verifique que $h(t) = e^{-2t}u(t)$ es la respuesta al impulso.
+        \item Determine si el sistema tiene memoria, es causal y estable.
+    \end{enumerate}
+    
+        
+        \ifanswers
+        {\color{red}
+        \textbf{Solución:}
+        
+    Primero identificamos que la entrada es $x(t)$ por lo que:
+    $x(t) = \delta(t) \rightarrow y(t) = h(t)$.
+    
+    Es cosa de derivar $y(t)$:
+    $$\frac{dy(t)}{dt} = \frac{d(e^{-2t}u(t))}{dt}$$
+    Por regla del producto:
+    $$\frac{dy(t)}{dt} = -2e^{-2t}u(t) + e^{-2t}\delta(t)$$
+    
+    Pero por propiedad del cedazo sabemos que $e^{-2t}\delta(t) = \delta(t)$ por lo que queda verificado  lo que se pide.\\
+    
+    Además el sistema \textbf{SI TIENE MEMORIA}, \textbf{ES CAUSAL} y \textbf{ESTABLE}, ya que su integral converge.
+    
+    
+    }
+    
+    \fi
+
+%%%%%%%%%%%%%%%%%%%%%%  RESPUESTA AL IMPULSO - P2  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Un sistema LTI tiene respuesta al impulso $h(t) = e^{-x}\sqcap(x)$. A partir de esto, ¿cual es la salida del sistema si la entrada es $f(t)=e^{-x}\sqcap(x)$? Encuentre una expresión analítica.
+
+
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+
+    Sabemos que la salida de un sistema LTI ($g(x)$) corresponde a la convolución de la entrada ($f(x)$) con la respuesta al impulso ($h(x)$). Entonces:
+    
+    $$
+    g(x) = \left\{ f*h\right\}(x) = \int_{-\infty}^{\infty}f(a)h(x-a)da
+    $$
+    
+    En el esquema de este problema tenemos que:
+    \begin{itemize}
+        \item Entrada: $e^{-x}\sqcap(x)$
+        \item Respuesta al impuslo: $e^{-x}\sqcap(x)$
+    \end{itemize}
+    
+    Reemplazando esto en la convolución:
+    
+    $$
+    g(x) = \left\{ f*h\right\}(x) = \int_{-\infty}^{\infty}e^{-a}\sqcap(a)e^{-x+a}\sqcap(x-a)da
+    $$
+    
+    Si uso propiedades de las potencias y re ordeno:
+    $$
+    g(x) =  \int_{-\infty}^{\infty}e^{-a}e^{a}e^{-x}\sqcap(x-a)\sqcap(a)da
+    $$
+    
+    Podemos ver que $e^{-x}$ es constante para $a$, por lo que lo puedo sacar de la integral:
+    $$
+    g(x) = e^{-x} \int_{-\infty}^{\infty}e^{-a}e^{a}\sqcap(x-a)\sqcap(a)da
+    $$
+    
+    Por otro lado, tenemos que $e^{-a}e^{a} = e^0 = 1$. Al sustituir en la integral tenemos:
+    
+    $$
+    g(x) = e^{-x} \int_{-\infty}^{\infty}\sqcap(x-a)\sqcap(a)da
+    $$
+    Podemos observar que la expresión $\int_{-\infty}^{\infty}\sqcap(x-a)\sqcap(a)da$ es la convolución de un rect con otro rect, lo que se demostró en clase que es un triángulo: $\left\{ \sqcap*\sqcap\right\}(x) = \wedge(x)$
+    Entonces, al sustituir esto, el resultado queda:
+    
+    $$
+    g(x) = e^{-x} \wedge(x)
+    $$
+
+    }
+
+    \fi
+
+%%%%%%%%%%%%%%%%%%%%%%  RESPUESTA AL IMPULSO - P3  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Salida de un sistema. Se tiene un sistema lineal e invariante cuya respuesta al impulso es $h(x)=u(x)$. Encuentre la salida $g(x)$ del sistema si la entrada es $f(x)=$ $[3 \sqcap(x / 6)-\sqcap(x / 4)-\sqcap(x / 2)] \operatorname{sgn}(x)$.
+
+    \ifanswers
+    {\color{red}
+    \textbf{Solución: } 
+    \\
+    Como el sistema es lineal e invariante, la salida será la convolución entre la entrada y la respuesta al impulso
+    
+    $$
+    [3 \sqcap(x / 6)-\sqcap(x / 4)-\sqcap(x / 2)] \operatorname{sgn}(x) *\ulcorner(x)
+    $$
+    
+    Esta convolución se resuelve trivialmente en forma gráfica. La entrada es (en línea punteada se muestra antes de multiplicar por sgn)
+    
+    \begin{center}
+    \includegraphics[width=0.5\textwidth]{g1.jpg}
+    \end{center}
+    
+    La convolución se muestra en el siguiente gráfico, que no es otra cosa que la integral de la entrada
+    
+    \begin{center}
+    \includegraphics[width=0.5\textwidth]{g2.jpg}
+    \end{center}
+    }
+    \fi
+
+
+
+    %%%%%%%%%%%%%%%%%%%%%%  RESPUESTA AL IMPULSO - P4 %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Encuentre y grafique la respuesta del sistema a la entrada escalón:
+
+    
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.6\textwidth]{images/circuito.png}
+        \label{fig:enter-label}
+    \end{figure}
+   
+
+    Donde $L_1 = L_2 = 2 H$ $R_1 = 2 \Omega$ y $R_2 = 3 \Omega$. Las condiciones iniciales son $i_1(0) = 0$ e $i_2(0) = 0$, donde cada una corresponde a la corriente que pasa por cada bobina.
+
+    \textbf{Hint:} Defina la ecuación diferencial que define a cada bobina en cada malla, resuelva la solución particular y homogénea, aplique las condiciones iniciales y tome como entrada el escalón unitario.
+
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+
+    Usando método de malla para la malla 1, es decir la malla de la izquierda se tiene: 
+
+    M1 : 
+
+    \[
+    L_1 \frac{d_{i1}}{dt} + R_1 i_1 - i_2 R_1 = u(t)
+    \]
+
+    M2 : 
+
+    \[
+    L_2 \frac{d_{i2}}{dt} + R_1 i_2 + i_2 R_2 - R_1 i_1 = 0
+    \]
+
+    Para encontrar la respuesta al escalón, primero se debe encontrar la solución homogénea, luego la particular y las condicones iniciales. 
+
+    Solución homogénea: 
+
+    \[
+    i_1 (t) = 2a e^{-0.5t} + b e^{-3t}
+    \]
+
+    \[
+    i_2 (t) = a e^{-0.5t} - 2b e^{-3t}
+    \]
+
+    Con las condiciones iniciales tenemos que: $a = \frac{-2}{5}$ y $\frac{-1}{30}$
+
+    Finalmente la salida del sistema a la entrada del escalón es: 
+
+    \[
+    g_s(t) = 1 - \frac{6}{5} e^{-0.5}t + \frac{1}{5} e^{-3t}
+    \]
+
+    y para $t < 0$ $g_s(t) = 0$
+    
+    
+    }
+
+    \fi
+
+    %%%%%%%%%%%%%%%%%%%%%%  RESPUESTA AL IMPULSO - P5 %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Se tiene un sistema LTI cuya respuesta a la rampa \( xu(x) \) es \( u(x - 1) \). Determine la respuesta del sistema ante la entrada \( (e^x - x - 1)u(x) \).
+
+    \ifanswers
+    {\color{red}
+    \textbf{Solución:}
+
+    Para comenzar, consideramos la definición de respuesta al impulso: la respuesta al impulso de un sistema es la salida del sistema cuando lo que ingresa es un impulso.
+
+    A continuación, consideramos que la salida de un sistema LTI es la convolución entre la entrada y la respuesta al impulso. Luego, la respuesta al impulso de un sistema es:
+
+    \[
+    \{h \ast \delta\} (x) = h(x)
+    \]
+
+    Ahora, no tenemos la respuesta al impulso pero sí tenemos la respuesta a la rampa. Nos interesa analizar cómo se relacionan el impulso y la rampa. Sabemos que el impulso es la derivada del escalón, por lo que derivamos la rampa:
+
+    \[
+    \frac{d}{dx}(xu(x)) = u(x) + \delta(x)
+    \]
+
+    Por la propiedad del muestreo del impulso:
+
+    \[
+    \delta(x) = 0
+    \]
+
+    Entonces, la derivada de la rampa es:
+
+    \[
+    \frac{d}{dx}(xu(x)) = u(x)
+    \]
+
+    Luego, si derivamos la rampa por segunda vez:
+
+    \[
+    \frac{d^2}{dx^2}(xu(x)) = u'(x) = \delta(x)
+    \]
+
+    Entonces, el impulso es la segunda derivada de la rampa. Por lo tanto, considerando \( (xu(x))'' = \delta(x) \) y sustituyendo en la definición de respuesta enunciada más arriba, tendremos:
+
+    \[
+    h(x) = \{h \ast \delta\} (x) = \{h \ast (xu(x))''\} (x)
+    \]
+
+    Usamos la propiedad de derivación de la convolución.
+
+    
+
+    Sea la respuesta a la rampa:
+
+    \[
+    k(x) = \{h \ast xu(x)\} (x)
+    \]
+
+    Por la propiedad de derivación de la convolución, la segunda derivada de la respuesta a la rampa será la respuesta al impulso:
+
+    \[
+    k''(x) = \{h \ast (xu(x))''\} (x) = \{h \ast \delta(x)\} = h(x)
+    \]
+
+    Entonces, tendremos que la respuesta al impulso del sistema es:
+
+    \[
+    h(x) = \frac{d^2}{dx^2}[u(x - 1)]
+    \]
+
+    Luego, dado que la salida de un sistema LTI es la convolución entre la entrada y la respuesta al impulso, se tiene que la salida del sistema cuando entra \( (e^x - x - 1)u(x) \) será:
+
+    \[
+    y(x) = \left\{ h(x) \ast (e^x - x - 1)u(x) \right\} = \left\{ \frac{d^2}{dx^2}[u(x - 1)] \ast (e^x - x - 1)u(x) \right\}
+    \]
+
+    A continuación, usando la propiedad de la derivación en la convolución:
+
+    \[
+    y(x) = \left\{ \frac{d}{dx} u(x - 1) \ast \frac{d}{dx} \left[(e^x - x - 1)u(x)\right] \right\}
+    \]
+
+    Tomando la primera derivada de la señal de entrada:
+
+    \[
+    \frac{d}{dx} \left[(e^x - x - 1)u(x)\right] = \delta(x)(e^x - x - 1) + u(x)(e^x - 1)
+    \]
+
+    Usando la propiedad del muestreo (evaluar en cero la función multiplicada por \( \delta(x) \)), la expresión de la izquierda vale cero, por lo que se obtiene:
+
+    \[
+    \frac{d}{dx} \left[(e^x - x - 1)u(x)\right] = u(x)(e^x - 1)
+    \]
+
+    Ahora tomando la primera derivada de la respuesta a la rampa:
+
+    \[
+    \frac{d}{dx} [u(x - 1)] = \delta(x - 1)
+    \]
+
+    Luego, la salida del sistema será:
+
+    \[
+    y(x) = \left\{ \delta(x - 1) \ast u(x)(e^x - 1) \right\} = u(x - 1)(e^{x-1} - 1)
+    \]
+   
+    
+    }
+
+    \fi
+
+%%%%%%%%%%%%%%%%%%%%%%  RESPUESTA AL IMPULSO - P6  %%%%%%%%%%%%%%%%%%%%%% 
+
+    \item Se tiene un sistema lineal y variante cuya respuesta al impulso $h(x,\eta) = u(x-\eta)-u(-\eta)$. Determine la salida del sistema cuando la entrada es $\sqcap(x+1/2)$
+
+\ifanswers
+    {\color{red}
+    \textbf{Solución: } 
+    \\
+    \begin{align*}
+        g(x) &= \int_{-\infty}^\infty f(\eta)h(x, \eta)d\eta \\
+        &= \int_{-\infty}^\infty \sqcap(x+1/2)[u(x-\eta)-u(-\eta)]d\eta \\
+        &=  \int_{-\infty}^\infty \sqcap(x+1/2)u(x-\eta)d\eta - \int_{-\infty}^\infty \sqcap(x+1/2)u(-\eta)d\eta \\
+        &= \int_{-\infty}^x \sqcap(x+1/2)d\eta - \int_{-\infty}^0 \sqcap(x+1/2)d\eta \\
+    \end{align*}
+    Notar que la segunda integraltiene un valor de 1, mientras que para calcular la primera, se puede analizar por casos. 
+
+    Si $x < -1$ se integra en la parte que la función rect vale $0 \Rightarrow g(x) = 0 -1 = -1$.
+
+    Si $-1 < x < 0$ sec onsidera un área parcial de rect desplazado, $0 \Rightarrow g(x) = 1 + x -1 = x$.
+
+    Finalmente, si $x>0$, se integra sobre el rect por completo, como este tiene un área $1$, queda que $g(x) =  1 - 1 = 0$
+    }
+    \fi
+
+%%%%%%%%%%%%%%%%%%%%%%  RESPUESTA AL IMPULSO - P7  %%%%%%%%%%%%%%%%%%%%%% 
+    \item Sea $ f(t)=\left\{\begin{matrix}
+t^2, t>0 \\
+0, t\leq 0
+\end{matrix}\right.$.
+
+    Encontrar la respuesta al impulso del sistema LTI que tiene como salida de $f(t)$:
+    \[y(t)=u(t)e^{-t^2}\]
+    
+\ifanswers
+    {\color{red}
+    \textbf{Solución: } 
+    Consideremos el hecho de que $f'(t)=2\diagup(t)$:
+    \[f''(t)=2u(t)\]
+    \[f'''(t)=2\delta(t)\]
+    Luego:
+    \[h(t)=\delta(t) \ast h(t)\]
+    \[h(t)=\frac{1}{2}(f'''(t)\ast h(t)))\]
+    \[h(t)=\frac{1}{2}(f(t)\ast h(t))'''\]
+    Pero $y(t)=f(t)\ast h(t)$
+    \[\Rightarrow h(t)=\frac{1}{2}y'''(t)\]
+    Que resulta ser:
+    \[h(t)=\frac{1}{2}(u(t)(e^{-t^2}))'''\]
+    \[h(t)=\frac{1}{2}(u(t)(-2e^{-t^2}t))''\]
+    \[h(t)=\frac{1}{2}(u(t)(4e^{-t^2}t^2-2e^{-t^2})'\]
+    \[h(t)=u(t)(6e^{-t^2}t-8e^{-t^2}t^3)\]
+    }
+
+    \fi
+
+    
+\end{enumerate}
+
+
+
+\end{document}
