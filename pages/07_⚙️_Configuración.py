@@ -273,7 +273,7 @@ def create_image_gallery_ui():
         with st.container(border=True):
             col1, col2 = st.columns([1, 2])
             with col1:
-                st.image(str(image_path), use_column_width=True)
+                st.image(str(image_path), use_container_width=True)
             with col2:
                 st.markdown(f"**Archivo:** `{image_path.name}`")
                 if image_path.name in used_images:

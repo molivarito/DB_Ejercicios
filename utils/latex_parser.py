@@ -81,7 +81,16 @@ class LaTeXParser:
         try:
             logger.info("🚀 Iniciando parsing V4.0 CORREGIDA")
             cleaned_content = self._preprocess_content(file_content)
-            exercises = self._parse_patricio_format_v4_fixed(cleaned_content)
+            
+            # --- LÓGICA DE DESPACHADOR ---
+            # Intenta primero con el formato de Tarea/Guía basado en \section*
+            exercises = self._parse_by_section_type(cleaned_content)
+            
+            # Si no encuentra, prueba con el formato original basado en \subsection*
+            if not exercises:
+                logger.info("No se encontraron ejercicios por sección, intentando por subsección (formato original)...")
+                exercises = self._parse_by_subsection(cleaned_content)
+
             if exercises: logger.info(f"✅ Parser V4.0 encontró {len(exercises)} ejercicios")
             else: logger.warning("⚠️ No se encontraron ejercicios")
             enriched_exercises = [self._enrich_exercise_metadata_v4(ex) for ex in exercises]
@@ -91,7 +100,7 @@ class LaTeXParser:
             logger.error(f"❌ Error durante el parsing V4.0: {e}", exc_info=True)
             raise ParseError(f"Error al parsear archivo LaTeX: {str(e)}")
     
-    def _parse_patricio_format_v4_fixed(self, content: str) -> List[ParsedExercise]:
+    def _parse_by_subsection(self, content: str) -> List[ParsedExercise]:
         """Parser específico V4.0 CORREGIDA para el formato de guías de Patricio"""
         exercises = []
         subsection_pattern = r'\\subsection\*\{([^}]+)\}(.*?)(?=\\subsection\*|\\section|\\end\{document\}|\Z)'
@@ -116,6 +125,39 @@ class LaTeXParser:
                 logger.info(f"✅ Extraídos {len(section_exercises)} ejercicios de '{subsection_title.strip()}'")
             else:
                 logger.warning(f"⚠️ No se encontraron ejercicios en '{subsection_title.strip()}'")
+        
+        return exercises
+
+    def _parse_by_section_type(self, content: str) -> List[ParsedExercise]:
+        """Nuevo parser para formato basado en \section* (ej. Tareas)"""
+        exercises = []
+        section_pattern = r'\\section\*\{([^}]+)\}(.*?)(?=\\section\*|\\end\{document\}|\Z)'
+        sections = re.findall(section_pattern, content, re.DOTALL | re.IGNORECASE)
+        
+        if not sections: return [] # Si no hay \section*, no es este formato
+
+        # Lista de títulos de sección a ignorar
+        ignore_titles = ['instrucciones generales', 'instrucciones']
+
+        logger.info(f"🔍 Encontradas {len(sections)} secciones principales (formato Tarea/Guía)")
+        
+        ejercicio_global_counter = 0
+        for section_title, section_content in sections:
+            # Omitir secciones de instrucciones
+            if any(ignore_title in section_title.lower() for ignore_title in ignore_titles):
+                logger.info(f"⏭️ Omitiendo sección de instrucciones: '{section_title.strip()}'")
+                continue
+
+            logger.info(f"📂 Procesando sección: '{section_title.strip()}'")
+            
+            section_exercises, num_processed = self._extract_individual_items_v4_fixed(
+                section_content, section_title, ejercicio_global_counter
+            )
+            
+            if section_exercises:
+                exercises.extend(section_exercises)
+                ejercicio_global_counter += num_processed
+                logger.info(f"✅ Extraídos {len(section_exercises)} ejercicios de '{section_title.strip()}'")
         
         return exercises
     
@@ -145,30 +187,41 @@ class LaTeXParser:
             # Remove the entire figure block
             content = content.replace(figure_block, '', 1)
 
+        # Fallback for includegraphics not inside a figure
+        if not image_filename:
+            image_pattern = r'\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}'
+            image_match = re.search(image_pattern, content)
+            if image_match:
+                image_filename = image_match.group(1).strip()
+                # Remove the includegraphics command
+                content = content.replace(image_match.group(0), '', 1)
+                logger.info(f"    -> Imagen encontrada (standalone): {image_filename}")
+
         return content.strip(), image_filename
 
-    def _extract_individual_items_v4_fixed(self, subsection_content: str, subsection_title: str, start_index: int) -> Tuple[List[ParsedExercise], int]:
+    def _extract_individual_items_v4_fixed(self, section_content: str, section_title: str, start_index: int) -> Tuple[List[ParsedExercise], int]:
         """
         Extrae ejercicios individuales de una subsección.
         ESTA ES LA VERSIÓN CORREGIDA Y ROBUSTA.
         """
         exercises = []
-        clean_subsection_title = self._normalize_subsection_title(subsection_title)
-        unit = self._map_subsection_to_unit_v4_fixed(subsection_title)
+        clean_section_title = self._normalize_subsection_title(section_title)
+        unit = self._map_subsection_to_unit_v4_fixed(section_title)
+        base_modality = self._get_modality_from_title(section_title)
         
         # =========================================================================
         # ▼▼▼ CAMBIO DE DISEÑO FUNDAMENTAL Y CORRECTO ▼▼▼
         # 1. Ya NO buscamos \begin{enumerate}...\end{enumerate} con regex.
         # 2. Aplicamos el splitter robusto directamente a todo el contenido de la subsección.
-        items = self._split_by_main_level_items_only(subsection_content)
+        items = self._split_by_main_level_items_only(section_content)
         # =========================================================================
         
         logger.info(f"✅ Encontrados {len(items)} items principales en esta subsección.")
         
         for i, item_content in enumerate(items):
             if item_content.strip():
-                # 1. Separar enunciado y solución primero
-                enunciado_raw, solucion_raw = self._extract_statement_and_solution_v4_fixed(item_content)
+                # 1. Separar enunciado y solución usando el nuevo método robusto
+                enunciado_raw, solucion_raw = self._extract_statement_and_solution_v5_robust(item_content)
                 
                 # 2. Extraer imagen del enunciado
                 enunciado, image_filename = self._extract_image_and_clean_content(enunciado_raw)
@@ -182,7 +235,7 @@ class LaTeXParser:
                     
                     # Generar título inteligente usando el contador global
                     current_exercise_num = start_index + i + 1
-                    titulo = self._generate_smart_title_v4(clean_subsection_title, difficulty, current_exercise_num)
+                    titulo = self._generate_smart_title_v4(clean_section_title, difficulty, current_exercise_num)
                     
                     exercise = ParsedExercise(
                         titulo=titulo,
@@ -191,14 +244,14 @@ class LaTeXParser:
                         unidad_tematica=unit,
                         nivel_dificultad=difficulty,
                         tipo_ejercicio=exercise_type,
-                        modalidad=self._detect_modality(enunciado),
+                        modalidad=self._detect_modality(enunciado, default_modality=base_modality),
                         tiempo_estimado=self._estimate_time_v4_fixed(enunciado, difficulty),
                         pattern_used="patricio_format_v4_fixed_robust",
                         confidence_score=0.98,
                         palabras_clave=self._extract_keywords(enunciado),
-                        comentarios=f"Extraído de subsección: {clean_subsection_title}",
+                        comentarios=f"Extraído de sección: {clean_section_title}",
                         image_filename=image_filename,
-                        solucion_image_filename=solucion_image_filename
+                        solucion_image_filename=solucion_image_filename,
                     )
                     exercises.append(exercise)
                     logger.info(f"    -> Ejercicio creado: {titulo}")
@@ -243,15 +296,39 @@ class LaTeXParser:
                         break
         return nested_ranges
 
-    def _extract_statement_and_solution_v4_fixed(self, item_content: str) -> Tuple[str, Optional[str]]:
-        # A more robust pattern that just captures the content of the \ifanswers block.
-        solution_pattern = r'\\ifanswers\s*\{(.*?)(?:\}\s*\\fi|\\fi\s*\})'
+    def _extract_statement_and_solution_v5_robust(self, item_content: str) -> Tuple[str, Optional[str]]:
+        """
+        Método robusto para extraer la solución que maneja llaves anidadas.
+        """
         solucion = None
         enunciado = item_content
+        start_marker = r'\\ifanswers\s*{'
         
-        match = re.search(solution_pattern, item_content, re.DOTALL)
-        if match:
-            solucion_raw = match.group(1).strip()
+        match = re.search(start_marker, item_content)
+        if not match:
+            return enunciado, None
+
+        content_after_marker = item_content[match.end():]
+        brace_level = 1
+        end_pos = -1
+
+        for i, char in enumerate(content_after_marker):
+            if char == '{':
+                brace_level += 1
+            elif char == '}':
+                brace_level -= 1
+                if brace_level == 0:
+                    end_pos = i
+                    break
+        
+        if end_pos != -1:
+            solucion_raw = content_after_marker[:end_pos].strip()
+            full_block_end = item_content.find(r'\fi', match.start() + end_pos)
+            if full_block_end == -1: full_block_end = len(item_content)
+            else: full_block_end += 3
+            
+            full_block = item_content[match.start():full_block_end]
+            enunciado = item_content.replace(full_block, '', 1).strip()
             
             # Check for "resuelta en ayudantía" and similar phrases
             skip_phrases = ['resuelta en ayudantía', 'ver ayudantía', 'en clases']
@@ -271,9 +348,6 @@ class LaTeXParser:
                     cleaned_solucion = re.sub(header_pattern, '', cleaned_solucion, count=1, flags=re.IGNORECASE).strip()
                 
                 solucion = cleaned_solucion
-            
-            # Remove the entire \ifanswers block from the enunciado
-            enunciado = item_content.replace(match.group(0), '', 1).strip()
             
         return enunciado, solucion
 
@@ -297,10 +371,10 @@ class LaTeXParser:
         if difficulty_scores: return max(difficulty_scores, key=difficulty_scores.get)
         return "Intermedio"
 
-    def _estimate_time_v4_fixed(self, content: str, difficulty: str) -> int:
+    def _estimate_time_v4_fixed(self, content: str, difficulty: str, modalidad: str = "Teórico") -> int:
         base_times = {"Básico": 10, "Intermedio": 18, "Avanzado": 30, "Desafío": 45}
         base_time = base_times.get(difficulty, 18); adjustments = 0
-        substructures = len(re.findall(r'\\begin\{enumerate\}|\\begin\{itemize\}', content)); adjustments += substructures * 5
+        substructures = len(re.findall(r'\\begin\{(enumerate|itemize)\}', content)); adjustments += substructures * 5
         math_elements = len(re.findall(r'\$.*?\$|\\\[.*?\\\]', content)); adjustments += min(math_elements * 2, 15)
         word_count = len(content.split())
         if word_count > 150: adjustments += 10
@@ -308,6 +382,7 @@ class LaTeXParser:
         if any(word in content.lower() for word in ['demuestre', 'pruebe', 'derive']): adjustments += 12
         elif any(word in content.lower() for word in ['grafique', 'trace', 'plot']): adjustments += 8
         total_time = base_time + adjustments
+        if modalidad == "Computacional": total_time *= 1.5
         return min(max(total_time, 5), 60)
 
     def _map_subsection_to_unit_v4_fixed(self, subsection_title: str) -> str:
@@ -323,7 +398,7 @@ class LaTeXParser:
         for unit, keywords in self.unidad_keywords.items():
             for keyword in keywords:
                 if keyword in title_lower: return unit
-        return 'Por determinar'
+        return 'General' # Default para formatos nuevos como Tareas
 
     def _generate_smart_title_v4(self, subsection_title: str, difficulty: str, number: int) -> str:
         tema_clean = re.sub(r'[^\w\s]', '', subsection_title); tema_clean = re.sub(r'\s+', '_', tema_clean.strip())
@@ -339,11 +414,20 @@ class LaTeXParser:
         if type_scores: return max(type_scores, key=type_scores.get)
         return "Cálculo"
 
-    def _detect_modality(self, text: str) -> str:
+    def _get_modality_from_title(self, title: str) -> str:
+        """Determina una modalidad base a partir del título de la sección/subsección."""
+        title_lower = title.lower()
+        if 'implementación' in title_lower or 'computacional' in title_lower:
+            return 'Computacional'
+        if 'teóricos' in title_lower or 'teorico' in title_lower:
+            return 'Teórico'
+        return 'Teórico' # Default a Teórico si no se especifica
+
+    def _detect_modality(self, text: str, default_modality: str = "Teórico") -> str:
         text_lower = text.lower()
         if any(word in text_lower for word in ['python', 'código', 'implemente']): return 'Computacional'
         if any(word in text_lower for word in ['grafique', 'trace', 'plot']): return 'Mixto'
-        return 'Teórico'
+        return default_modality
     
     def _extract_keywords(self, text: str) -> List[str]:
         technical_terms = ['convolución', 'fourier', 'laplace', 'transformada', 'señal', 'sistema', 'impulso', 'lineal']

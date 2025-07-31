@@ -147,7 +147,7 @@ def main():
                 )
         
         with col2:
-            st.subheader("📊 Vista Previa")
+            st.subheader("📊 Vista Previa y Puntajes")
             
             # Obtener ejercicios según método
             if usar_seleccionados and ejercicios_seleccionados_ids:
@@ -158,14 +158,9 @@ def main():
                 ejercicios_finales = obtener_ejercicios_filtrados(db, unidades_sel, dificultades_sel, modalidades_sel)[:num_ejercicios]
                 st.info(f"🔍 {len(ejercicios_finales)} ejercicios filtrados automáticamente")
             
-            # Mostrar distribución
+            # Mostrar distribución y puntajes
             if ejercicios_finales:
-                mostrar_distribucion_ejercicios(ejercicios_finales)
-                
-                with st.expander("👁️ Lista de Ejercicios", expanded=False):
-                    for i, ej in enumerate(ejercicios_finales, 1):
-                        st.write(f"**{i}.** {ej.get('titulo', 'Sin título')}")
-                        st.write(f"   🎯 {ej.get('unidad_tematica', 'N/A')} | 🎚️ {ej.get('nivel_dificultad', 'N/A')} | ⏱️ {ej.get('tiempo_estimado', 'N/A')} min")
+                scores = display_and_edit_scores(ejercicios_finales)
         
         # GENERACIÓN DEL DOCUMENTO
         if generar_btn and ejercicios_finales:
@@ -175,13 +170,14 @@ def main():
                 'semestre': semestre,
                 'fecha': fecha_doc.strftime('%d de %B, %Y'),
                 'tiempo_total': tiempo_total,
-                'instrucciones': [inst.strip() for inst in instrucciones.split('\n') if inst.strip()]
+                'instrucciones': [inst.strip() for inst in instrucciones.split('\n') if inst.strip()],
+                'scores': st.session_state.get('exercise_scores', {})
             }
             
             if metodo_generacion == "Templates Profesionales PUC" and usar_templates_profesionales:
                 generar_con_templates_profesionales(tipo_documento, ejercicios_finales, doc_info, incluir_soluciones, pdf_gen)
             else:
-                generar_con_latex_basico(tipo_documento, ejercicios_finales, doc_info, incluir_soluciones)
+                generar_con_latex_basico(tipo_documento, ejercicios_finales, doc_info, incluir_soluciones, pdf_gen)
     
     except Exception as e:
         st.error(f"Error: {str(e)}")
@@ -227,26 +223,40 @@ def obtener_ejercicios_filtrados(db, unidades, dificultades, modalidades):
         filtrados.append(ej)
     return filtrados
 
-def mostrar_distribucion_ejercicios(ejercicios):
-    """Muestra distribución de ejercicios seleccionados"""
-    unidades = {}
-    dificultades = {}
+def display_and_edit_scores(ejercicios: list) -> dict:
+    """Muestra una UI para editar los puntajes de los ejercicios seleccionados."""
+    st.subheader("⚖️ Asignación de Puntajes")
+    
+    if 'exercise_scores' not in st.session_state:
+        st.session_state.exercise_scores = {}
+
+    # Inicializar puntajes para ejercicios nuevos en la selección
+    default_scores = {"Básico": 4, "Intermedio": 6, "Avanzado": 8, "Desafío": 10}
     for ej in ejercicios:
-        unidad = ej.get('unidad_tematica', 'Sin unidad')
-        dificultad = ej.get('nivel_dificultad', 'Sin dificultad')
-        unidades[unidad] = unidades.get(unidad, 0) + 1
-        dificultades[dificultad] = dificultades.get(dificultad, 0) + 1
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("**Por Unidad:**")
-        for unidad, cant in unidades.items():
-            st.write(f"• {unidad}: {cant}")
-    
-    with col2:
-        st.write("**Por Dificultad:**")
-        for dif, cant in dificultades.items():
-            st.write(f"• {dif}: {cant}")
+        if ej['id'] not in st.session_state.exercise_scores:
+            st.session_state.exercise_scores[ej['id']] = default_scores.get(ej.get('nivel_dificultad', 'Intermedio'), 6)
+
+    # UI para editar puntajes
+    for ej in ejercicios:
+        ej_id = ej['id']
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"**{ej.get('titulo', 'Sin título')}** ({ej.get('nivel_dificultad')})")
+        with col2:
+            score = st.number_input(
+                "Puntaje", 
+                min_value=0, 
+                max_value=20, 
+                value=st.session_state.exercise_scores[ej_id], 
+                key=f"score_{ej_id}",
+                label_visibility="collapsed"
+            )
+            st.session_state.exercise_scores[ej_id] = score
+
+    # Calcular y mostrar puntaje total
+    current_ids = {ej['id'] for ej in ejercicios}
+    total_score = sum(st.session_state.exercise_scores.get(ej_id, 0) for ej_id in current_ids)
+    st.metric("Puntaje Total del Documento", total_score)
 
 def generar_con_templates_profesionales(tipo_documento, ejercicios, doc_info, incluir_soluciones, pdf_gen):
     """Genera documento usando tu RealTemplatePDFGenerator"""
@@ -394,13 +404,14 @@ def generar_con_templates_profesionales(tipo_documento, ejercicios, doc_info, in
                 st.info("💡 Intenta con 'Generación LaTeX Básica' como alternativa")
                 
         except Exception as e:
-            st.error(f"❌ Error con templates profesionales: {str(e)}")
+            st.error(f"❌ Error con templates profesionales: {e}")
             
             # Debug detallado
             with st.expander("🔍 Debug Info Completo"):
                 st.write("**Información del generador:**")
                 st.write(f"Tipo: {type(pdf_gen)}")
-                st.write(f"Clase base: {pdf_gen.__class__.__bases__}")
+                if hasattr(pdf_gen, '__class__') and hasattr(pdf_gen.__class__, '__bases__'):
+                    st.write(f"Clase base: {pdf_gen.__class__.__bases__}")
                 
                 st.write("**Métodos disponibles:**")
                 metodos = [m for m in dir(pdf_gen) if not m.startswith('_') and callable(getattr(pdf_gen, m))]
@@ -413,7 +424,8 @@ def generar_con_templates_profesionales(tipo_documento, ejercicios, doc_info, in
                 st.write("**Directorio de templates:**")
                 if hasattr(pdf_gen, 'templates_dir'):
                     st.write(f"Ruta: {pdf_gen.templates_dir}")
-                    st.write(f"¿Existe?: {pdf_gen.templates_dir.exists()}")
+                    if hasattr(pdf_gen.templates_dir, 'exists'):
+                        st.write(f"¿Existe?: {pdf_gen.templates_dir.exists()}")
                 
                 st.write("**Error completo:**")
                 import traceback
@@ -430,7 +442,7 @@ def get_template_name_real(tipo_documento):
     else:
         return "guia_template.tex"
 
-def generar_con_latex_basico(tipo_documento, ejercicios, doc_info, incluir_soluciones):
+def generar_con_latex_basico(tipo_documento, ejercicios, doc_info, incluir_soluciones, pdf_gen):
     """Fallback: Generación LaTeX básica sin templates"""
     
     with st.spinner(f"📄 Generando {tipo_documento} con LaTeX básico..."):
@@ -442,7 +454,7 @@ def generar_con_latex_basico(tipo_documento, ejercicios, doc_info, incluir_soluc
             filename = f"{tipo_documento.lower().replace('/', '_').replace(' ', '_')}_{timestamp}"
             
             # Generar LaTeX básico
-            latex_content = crear_latex_basico(ejercicios, doc_info, incluir_soluciones)
+            latex_content = crear_latex_basico(ejercicios, doc_info, incluir_soluciones, doc_info.get('scores', {}))
             
             # Guardar .tex
             tex_path = output_dir / f"{filename}.tex"
@@ -451,36 +463,82 @@ def generar_con_latex_basico(tipo_documento, ejercicios, doc_info, incluir_soluc
             
             st.success(f"✅ Archivo .tex generado: {tex_path}")
             
-            # Descargar .tex
+            # Copiar imágenes y compilar a PDF
+            pdf_gen._copy_images_to_output(ejercicios)
+            st.info("⚙️ Intentando compilar a PDF...")
+            pdf_path_str = pdf_gen._compile_to_pdf(tex_path)
+
+            if pdf_path_str and pdf_path_str.endswith('.pdf'):
+                st.success("🎯 PDF compilado exitosamente!")
+                pdf_path = Path(pdf_path_str)
+                with open(pdf_path, 'rb') as f:
+                    st.download_button(
+                        label=f"📥 Descargar {tipo_documento} (PDF)",
+                        data=f.read(),
+                        file_name=pdf_path.name,
+                        mime="application/pdf",
+                        type="primary"
+                    )
+            else:
+                st.warning("⚠️ No se pudo compilar a PDF. Puedes descargar el archivo .tex a continuación.")
+
+            # Ofrecer descarga del .tex en cualquier caso
             with open(tex_path, 'r', encoding='utf-8') as f:
-                st.download_button("📄 Descargar .tex", f.read(), f"{filename}.tex", "text/plain")
-            
-            st.info("💡 Para obtener formato profesional PUC, asegúrate de que los templates estén disponibles")
+                st.download_button("📄 Descargar código LaTeX (.tex)", f.read(), f"{filename}.tex", "text/plain")
                 
         except Exception as e:
             st.error(f"❌ Error en generación básica: {str(e)}")
 
-def crear_latex_basico(ejercicios, doc_info, incluir_soluciones):
-    """Generación LaTeX básica como fallback"""
+def crear_latex_basico(ejercicios, doc_info, incluir_soluciones, scores=None):
+    """Generación LaTeX básica como fallback - VERSIÓN CORREGIDA"""
+    if scores is None:
+        scores = {}
     
-    # Crear el contenido LaTeX sin f-strings problemáticos
     titulo = doc_info['titulo']
     profesor = doc_info['profesor']
     semestre = doc_info['semestre']
     fecha = doc_info['fecha']
     
-    # Generar ejercicios
     ejercicios_latex = ""
     for i, ej in enumerate(ejercicios, 1):
-        titulo_ej = ej.get('titulo', 'Sin título')
-        enunciado = ej.get('enunciado', '')
-        ejercicios_latex += f"\\subsection*{{Ejercicio {i}: {titulo_ej}}}\n{enunciado}\n\\vspace{{2cm}}\n\n"
+        titulo_ej = ej.get('titulo', 'Sin título').replace('&', '\\&').replace('%', '\\%')
+        enunciado = (ej.get('enunciado', '') or '').replace('&', '\\&').replace('%', '\\%')
+        
+        # Añadir puntaje al título
+        image_latex = ""
+        if ej.get('imagen_path'):
+            image_path = Path(ej.get('imagen_path'))
+            image_latex = f"\\includegraphics[width=0.6\\textwidth]{{{image_path.name}}}"
+        
+        solucion_latex = ""
+        if incluir_soluciones:
+            solucion_texto = (ej.get('solucion_completa', '') or '').replace('&', '\\&').replace('%', '\\%')
+            solucion_imagen_latex = ""
+            if ej.get('solucion_imagen_path'):
+                sol_image_path = Path(ej.get('solucion_imagen_path'))
+                solucion_imagen_latex = f"\\includegraphics[width=0.6\\textwidth]{{{sol_image_path.name}}}"
+            
+            if solucion_texto or solucion_imagen_latex:
+                solucion_latex = f"""
+\\subsection*{{Solución}}
+{solucion_texto}
+{solucion_imagen_latex}
+"""
+        
+        puntaje = scores.get(ej['id'], 6) # Default de 6 puntos
+        ejercicios_latex += f"""
+\\subsection*{{Ejercicio {i}: {titulo_ej} ({puntaje} puntos)}}
+{enunciado}
+{image_latex}
+{solucion_latex}
+\\vspace{{1cm}}
+"""
     
-    # Documento completo
     documento = f"""\\documentclass[12pt,a4paper]{{article}}
 \\usepackage[utf8]{{inputenc}}
 \\usepackage[spanish]{{babel}}
 \\usepackage{{amsmath,amssymb}}
+\\usepackage{{graphicx}}
 \\usepackage{{geometry}}
 \\geometry{{margin=2.5cm}}
 

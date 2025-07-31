@@ -66,8 +66,10 @@ class RealTemplatePDFGenerator:
         text = text.replace('#', ' numero ')
         return text
     
-    def _generate_ejercicios_prueba(self, exercises, incluir_soluciones=False):
+    def _generate_ejercicios_prueba(self, exercises, incluir_soluciones=False, scores=None):
         """Genera ejercicios para prueba"""
+        if scores is None:
+            scores = {}
         latex_content = ""
         
         for i, exercise in enumerate(exercises, 1):
@@ -96,8 +98,9 @@ class RealTemplatePDFGenerator:
 {solucion_imagen_latex}
 }}
 """
-
-            latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{6}}
+            
+            score = scores.get(exercise['id'], 6)
+            latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{{score}}}
  {enunciado}
  {image_latex}
  
@@ -111,8 +114,10 @@ class RealTemplatePDFGenerator:
         
         return latex_content
     
-    def _generate_ejercicios_tarea(self, exercises, incluir_soluciones=False):
+    def _generate_ejercicios_tarea(self, exercises, incluir_soluciones=False, scores=None):
         """Genera ejercicios para tarea separando teóricos y computacionales"""
+        if scores is None:
+            scores = {}
         teoricos = [e for e in exercises if e.get('modalidad') != 'Computacional']
         computacionales = [e for e in exercises if e.get('modalidad') == 'Computacional']
         
@@ -144,8 +149,9 @@ class RealTemplatePDFGenerator:
 {solucion_imagen_latex}
 }}
 """
-
-                latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{2}}
+                
+                score = scores.get(exercise['id'], 2)
+                latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{{score}}}
  {enunciado}
  {image_latex}
 {solucion_block}
@@ -181,8 +187,9 @@ class RealTemplatePDFGenerator:
 {solucion_imagen_latex}
 }}
 """
-
-                latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{2}}
+                
+                score = scores.get(exercise['id'], 2)
+                latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{{score}}}
  {enunciado}
  
  {image_latex}
@@ -202,8 +209,10 @@ class RealTemplatePDFGenerator:
         
         return latex_content
     
-    def _generate_ejercicios_guia(self, exercises, incluir_soluciones=False):
+    def _generate_ejercicios_guia(self, exercises, incluir_soluciones=False, scores=None):
         """Genera ejercicios para guía agrupados por unidad"""
+        if scores is None:
+            scores = {}
         # Agrupar por unidad temática
         unidades = {}
         for exercise in exercises:
@@ -244,8 +253,9 @@ class RealTemplatePDFGenerator:
 {solucion_imagen_latex}
 }}
 """
-
-                latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{6}}
+                
+                score = scores.get(exercise['id'], 6)
+                latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{{score}}}
  \\textbf{{Dificultad:}} {dificultad} \\hfill \\textbf{{Tiempo:}} {tiempo} min
  
  {enunciado}
@@ -304,13 +314,14 @@ class RealTemplatePDFGenerator:
         
         # Copiar imágenes necesarias al directorio de salida
         self._copy_images_to_output(exercises)
+        scores = exam_info.get('scores', {})
 
         # Leer template
         with open(template_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # Generar ejercicios dinámicos
-        exercises_latex = self._generate_ejercicios_prueba(exercises, incluir_soluciones=incluir_soluciones)
+        exercises_latex = self._generate_ejercicios_prueba(exercises, incluir_soluciones=incluir_soluciones, scores=scores)
         
         # Buscar y reemplazar la sección de ejercicios
         start_marker = "\\begin{ejercicio}[Manipulación de señales complejas]"
@@ -345,13 +356,14 @@ class RealTemplatePDFGenerator:
         
         # Copiar imágenes necesarias al directorio de salida
         self._copy_images_to_output(exercises)
+        scores = task_info.get('scores', {})
 
         # Leer template
         with open(template_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # Generar ejercicios dinámicos
-        exercises_latex = self._generate_ejercicios_tarea(exercises, incluir_soluciones=incluir_soluciones)
+        exercises_latex = self._generate_ejercicios_tarea(exercises, incluir_soluciones=incluir_soluciones, scores=scores)
         
         # MARCADORES CORRECTOS BASADOS EN TU TEMPLATE
         start_marker = "\\begin{ejerciciosteoricos}"
@@ -390,13 +402,14 @@ class RealTemplatePDFGenerator:
         
         # Copiar imágenes necesarias al directorio de salida
         self._copy_images_to_output(exercises)
+        scores = guide_info.get('scores', {})
 
         # Leer template
         with open(template_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # Generar ejercicios dinámicos
-        exercises_latex = self._generate_ejercicios_guia(exercises, incluir_soluciones=incluir_soluciones)
+        exercises_latex = self._generate_ejercicios_guia(exercises, incluir_soluciones=incluir_soluciones, scores=scores)
         
         # Buscar y reemplazar sección de ejercicios
         start_marker = "\\section{Ejercicios}"

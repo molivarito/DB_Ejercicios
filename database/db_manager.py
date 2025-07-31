@@ -201,6 +201,32 @@ class DatabaseManager:
         
         return success
     
+    def eliminar_ejercicio(self, ejercicio_id: int) -> bool:
+        """Elimina un ejercicio y sus imágenes asociadas."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # 1. Obtener las rutas de las imágenes antes de borrar el registro
+        cursor.execute("SELECT imagen_path, solucion_imagen_path FROM ejercicios WHERE id = ?", (ejercicio_id,))
+        paths = cursor.fetchone()
+        
+        # 2. Eliminar el registro de la base de datos
+        cursor.execute("DELETE FROM ejercicios WHERE id = ?", (ejercicio_id,))
+        success = cursor.rowcount > 0
+        
+        conn.commit()
+        conn.close()
+        
+        # 3. Si se eliminó de la BD, eliminar los archivos de imagen
+        if success and paths:
+            image_path_str, sol_image_path_str = paths
+            if image_path_str:
+                Path(image_path_str).unlink(missing_ok=True)
+            if sol_image_path_str:
+                Path(sol_image_path_str).unlink(missing_ok=True)
+                    
+        return success
+
     def obtener_estadisticas(self) -> Dict:
         """Obtiene estadísticas generales de la base de datos"""
         conn = sqlite3.connect(self.db_path)

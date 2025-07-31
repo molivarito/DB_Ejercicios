@@ -23,14 +23,7 @@ except ImportError:
 # =========================================================================
 def convert_latex_to_markdown(text: str) -> str:
     if not text: return ""
-    def replace_figure(match):
-        content = match.group(0)
-        img_match = re.search(r'\\includegraphics\[.*?\]\{(.+?)\}', content)
-        if img_match:
-            img_path = img_match.group(1)
-            return f"\n![Imagen del Ejercicio]({img_path})\n"
-        return ""
-    text = re.sub(r'\\begin\{figure\}.*?\\end\{figure\}', replace_figure, text, flags=re.DOTALL)
+    # La lógica de imágenes se maneja fuera, mostrando directamente desde imagen_path.
     text = re.sub(r'\\begin\{(align|align\*)\}(.*?)\\end\{\1\}', r'$$\n\\begin{aligned}\2\\end{aligned}\n$$', text, flags=re.DOTALL)
     text = re.sub(r'\\begin\{(equation|equation\*)\}(.*?)\\end\{\1\}', r'$$\n\2\n$$', text, flags=re.DOTALL)
     text = re.sub(r'\\\[(.*?)\\\]', r'$$\n\1\n$$', text, flags=re.DOTALL)
@@ -123,7 +116,7 @@ def mostrar_ejercicio_con_seleccion(ejercicio, db: DatabaseManager):
             new_solucion = st.text_area("Solución (LaTeX)", value=ejercicio.get('solucion_completa', ''), height=250)
 
             # --- GESTIÓN DE IMAGEN ---
-            st.divider()
+            st.markdown("---")
             st.write("**Gestión de Imagen**")
             current_image_path_str = ejercicio.get('imagen_path')
             delete_image = False
@@ -131,25 +124,43 @@ def mostrar_ejercicio_con_seleccion(ejercicio, db: DatabaseManager):
                 image_path = Path(current_image_path_str)
                 if image_path.is_file():
                     st.write("Imagen actual:")
-                    st.image(str(image_path), use_column_width=True)
+                    st.image(str(image_path), use_container_width=True)
                     delete_image = st.checkbox("🗑️ Eliminar imagen actual", key=f"delete_img_{ejercicio['id']}")
                 else:
                     st.warning(f"⚠️ No se encontró la imagen en la ruta: `{current_image_path_str}`")
             else:
                 st.write("Este ejercicio no tiene imagen asociada.")
 
-            new_image_file = st.file_uploader("Subir nueva imagen (reemplazará la actual)", type=["png", "jpg", "jpeg", "gif"])
+            new_image_file = st.file_uploader("Subir nueva imagen de **enunciado**", type=["png", "jpg", "jpeg", "gif"], key=f"uploader_enunciado_{ejercicio['id']}")
+            
+            st.markdown("---")
+            st.write("**Gestión de Imagen de Solución**")
+            current_sol_image_path_str = ejercicio.get('solucion_imagen_path')
+            delete_sol_image = False
+            if current_sol_image_path_str:
+                sol_image_path = Path(current_sol_image_path_str)
+                if sol_image_path.is_file():
+                    st.write("Imagen de solución actual:")
+                    st.image(str(sol_image_path), use_container_width=True)
+                    delete_sol_image = st.checkbox("🗑️ Eliminar imagen de solución actual", key=f"delete_sol_img_{ejercicio['id']}")
+                else:
+                    st.warning(f"⚠️ No se encontró la imagen en la ruta: `{current_sol_image_path_str}`")
+            else:
+                st.write("Este ejercicio no tiene imagen de solución asociada.")
+            
+            new_sol_image_file = st.file_uploader("Subir nueva imagen de **solución**", type=["png", "jpg", "jpeg", "gif"], key=f"uploader_solucion_{ejercicio['id']}")
+
             st.divider()
 
             if st.form_submit_button("💾 Guardar Cambios", type="primary"):
                 data_to_update = {'titulo': new_titulo, 'unidad_tematica': new_unidad, 'nivel_dificultad': new_dificultad, 'enunciado': new_enunciado, 'solucion_completa': new_solucion}
+                IMAGES_DIR = Path("images")
+                IMAGES_DIR.mkdir(exist_ok=True)
 
                 # --- LÓGICA PARA GUARDAR/ELIMINAR IMAGEN ---
                 image_path_to_update = current_image_path_str
 
-                if new_image_file:
-                    IMAGES_DIR = Path("images")
-                    IMAGES_DIR.mkdir(exist_ok=True)
+                if new_image_file:                    
                     dest_path = IMAGES_DIR / new_image_file.name
                     with open(dest_path, "wb") as f:
                         f.write(new_image_file.getbuffer())
@@ -170,11 +181,48 @@ def mostrar_ejercicio_con_seleccion(ejercicio, db: DatabaseManager):
 
                 if image_path_to_update != current_image_path_str:
                     data_to_update['imagen_path'] = image_path_to_update
+                
+                # --- LÓGICA PARA GUARDAR/ELIMINAR IMAGEN DE SOLUCIÓN ---
+                sol_image_path_to_update = current_sol_image_path_str
+
+                if new_sol_image_file:
+                    dest_path = IMAGES_DIR / new_sol_image_file.name
+                    with open(dest_path, "wb") as f:
+                        f.write(new_sol_image_file.getbuffer())
+                    sol_image_path_to_update = str(dest_path).replace('\\', '/')
+                    if current_sol_image_path_str and Path(current_sol_image_path_str).exists() and Path(current_sol_image_path_str) != dest_path:
+                        Path(current_sol_image_path_str).unlink(missing_ok=True)
+
+                elif delete_sol_image and current_sol_image_path_str:
+                    sol_image_path_to_update = None
+                    if Path(current_sol_image_path_str).exists():
+                        Path(current_sol_image_path_str).unlink(missing_ok=True)
+                
+                if sol_image_path_to_update != current_sol_image_path_str:
+                    data_to_update['solucion_imagen_path'] = sol_image_path_to_update
 
                 if db.actualizar_ejercicio(ejercicio['id'], data_to_update):
                     st.toast("✅ Ejercicio actualizado!", icon="🎉"); st.rerun()
                 else:
                     st.error("❌ No se pudo actualizar el ejercicio.")
+
+    @st.dialog(f"Confirmar eliminación: {ejercicio.get('titulo', '')}", width="large")
+    def delete_dialog():
+        st.warning("⚠️ ¿Estás seguro de que quieres eliminar este ejercicio? Esta acción es irreversible y también borrará las imágenes asociadas del disco.")
+        
+        st.write(f"**Ejercicio a eliminar:** {ejercicio.get('titulo')}")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("❌ Cancelar", use_container_width=True):
+                st.rerun()
+        with col2:
+            if st.button("🗑️ Confirmar Eliminación", type="primary", use_container_width=True):
+                if db.eliminar_ejercicio(ejercicio['id']):
+                    st.toast("✅ Ejercicio eliminado exitosamente.", icon="🗑️")
+                    st.rerun()
+                else:
+                    st.error("❌ No se pudo eliminar el ejercicio.")
 
     with st.container():
         col_check, col_content = st.columns([0.1, 0.9])
@@ -202,10 +250,14 @@ def mostrar_ejercicio_con_seleccion(ejercicio, db: DatabaseManager):
                 st.markdown(enunciado_preview, unsafe_allow_html=True)
             
             with st.expander("👁️ Ver detalles completos"):
-                # El botón ahora simplemente llama a la función del diálogo
-                if st.button("✏️ Editar Ejercicio", key=f"edit_{ejercicio['id']}"):
-                    edit_dialog()
-                
+                col_edit, col_delete = st.columns(2)
+                with col_edit:
+                    if st.button("✏️ Editar Ejercicio", key=f"edit_{ejercicio['id']}", use_container_width=True):
+                        edit_dialog()
+                with col_delete:
+                    if st.button("🗑️ Eliminar Ejercicio", key=f"delete_{ejercicio['id']}", use_container_width=True, type="secondary"):
+                        delete_dialog()
+
                 st.write("---")
                 if ejercicio.get('enunciado'):
                     st.write("**Enunciado completo:**")
@@ -222,6 +274,13 @@ def mostrar_ejercicio_con_seleccion(ejercicio, db: DatabaseManager):
                 if ejercicio.get('solucion_completa'):
                     st.write("**Solución:**")
                     st.markdown(convert_latex_to_markdown(ejercicio['solucion_completa']), unsafe_allow_html=True)
+                
+                if ejercicio.get('solucion_imagen_path'):
+                    sol_image_path = Path(ejercicio['solucion_imagen_path'])
+                    if sol_image_path.is_file():
+                        st.image(str(sol_image_path), caption=f"Imagen de Solución: {sol_image_path.name}")
+
+
                 if ejercicio.get('codigo_python'):
                     st.write("**Código Python:**"); st.code(ejercicio['codigo_python'], language='python')
         

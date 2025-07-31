@@ -51,6 +51,10 @@ def _convert_parsed_to_dict(parsed_ex, source_name: str) -> Dict:
     # Agregar imagen si existe
     if hasattr(parsed_ex, 'image_filename') and parsed_ex.image_filename:
         exercise_dict['image_filename'] = parsed_ex.image_filename
+
+    # Agregar imagen de solución si existe
+    if hasattr(parsed_ex, 'solucion_image_filename') and parsed_ex.solucion_image_filename:
+        exercise_dict['solucion_image_filename'] = parsed_ex.solucion_image_filename
     
     # Agregar solucion_completa si existe
     if hasattr(parsed_ex, 'solucion_completa') and parsed_ex.solucion_completa:
@@ -282,6 +286,28 @@ def main():
                     elif image_filename and not zip_root_dir_str:
                          st.warning(f"🖼️⚠️ Imagen `{image_filename}` detectada pero no se puede procesar (no es una importación desde ZIP).")
                     
+                    # Manejo de la imagen de la solución
+                    ejercicio['solucion_imagen_path'] = None
+                    solucion_image_filename = ex.get('solucion_image_filename')
+                    if solucion_image_filename and zip_root_dir_str and tex_parent_dir_str:
+                        zip_root_dir = Path(zip_root_dir_str)
+                        tex_parent_dir = Path(tex_parent_dir_str)
+                        
+                        source_image_path = (tex_parent_dir / solucion_image_filename).resolve()
+                        if not source_image_path.is_file():
+                            base_filename = Path(solucion_image_filename).name
+                            found_files = list(zip_root_dir.rglob(base_filename))
+                            source_image_path = found_files[0] if found_files else None
+
+                        if source_image_path and source_image_path.is_file():
+                            dest_path = IMAGES_DIR / source_image_path.name
+                            shutil.copy(source_image_path, dest_path)
+                            ejercicio['solucion_imagen_path'] = str(dest_path).replace('\\', '/')
+                            logger.info(f"✅ Imagen de solución '{solucion_image_filename}' copiada a '{dest_path}'")
+                        else:
+                            st.warning(f"🖼️❌ Imagen de solución `{solucion_image_filename}` mencionada para '{ejercicio['titulo']}' pero no se encontró.")
+
+
                     ejercicios_preparados.append(ejercicio)
                 
                 importados = 0
