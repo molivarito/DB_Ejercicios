@@ -1,10 +1,12 @@
 """
 Búsqueda de Ejercicios con Selección para Documentos
 Página: 03_🔍_Buscar_Ejercicios.py
+VERSIÓN FINAL: Traductor LaTeX a Markdown mejorado para manejar imágenes y más entornos.
 """
 
 import streamlit as st
 import pandas as pd
+import re
 from datetime import datetime
 
 # Importar dependencias
@@ -14,6 +16,49 @@ except ImportError:
     import sys
     sys.path.append('.')
     from database.db_manager import DatabaseManager
+
+# =========================================================================
+# ▼▼▼ TRADUCTOR LÁTEX A MARKDOWN (VERSIÓN MEJORADA) ▼▼▼
+# =========================================================================
+def convert_latex_to_markdown(text: str) -> str:
+    """
+    Traduce comandos de entorno LaTeX comunes a un formato compatible con st.markdown.
+    """
+    if not text:
+        return ""
+
+    # --- MANEJO DE IMÁGENES ---
+    # Busca el entorno figure completo, extrae el path de la imagen y lo reemplaza por Markdown
+    def replace_figure(match):
+        content = match.group(0)
+        img_match = re.search(r'\\includegraphics\[.*?\]\{(.+?)\}', content)
+        if img_match:
+            img_path = img_match.group(1)
+            # Streamlit puede mostrar imágenes locales si están en la misma carpeta o subcarpeta
+            return f"\n![Imagen del Ejercicio]({img_path})\n"
+        return "" # Si no encuentra imagen, elimina el bloque
+    text = re.sub(r'\\begin\{figure\}.*?\\end\{figure\}', replace_figure, text, flags=re.DOTALL)
+
+    # --- MANEJO DE ENTORNOS MATEMÁTICOS ---
+    # Convierte align -> aligned para compatibilidad con KaTeX/Streamlit
+    text = re.sub(r'\\begin\{(align|align\*)\}(.*?)\\end\{\1\}', r'$$\n\\begin{aligned}\2\\end{aligned}\n$$', text, flags=re.DOTALL)
+    # Convierte equation a bloque matemático
+    text = re.sub(r'\\begin\{(equation|equation\*)\}(.*?)\\end\{\1\}', r'$$\n\2\n$$', text, flags=re.DOTALL)
+    # Convierte \[ ... \] a bloque matemático
+    text = re.sub(r'\\\[(.*?)\\\]', r'$$\n\1\n$$', text, flags=re.DOTALL)
+
+    # --- MANEJO DE LISTAS ---
+    def process_list(match, list_type='ol'):
+        items = match.group(1)
+        if list_type == 'ol':
+            processed_items = re.sub(r'\\item', '\n1. ', items).strip()
+        else:
+            processed_items = re.sub(r'\\item', '\n* ', items).strip()
+        return f"\n{processed_items}\n"
+    text = re.sub(r'\\begin\{enumerate\}(.*?)\\end\{enumerate\}', lambda m: process_list(m, 'ol'), text, flags=re.DOTALL)
+    text = re.sub(r'\\begin\{itemize\}(.*?)\\end\{itemize\}', lambda m: process_list(m, 'ul'), text, flags=re.DOTALL)
+
+    return text
 
 def main():
     st.set_page_config(
@@ -32,133 +77,58 @@ def main():
     try:
         db = DatabaseManager()
         
-        # Inicializar session state para ejercicios seleccionados
         if 'ejercicios_seleccionados' not in st.session_state:
             st.session_state.ejercicios_seleccionados = []
         
-        # SIDEBAR CON FILTROS
         with st.sidebar:
             st.header("🔍 Filtros de Búsqueda")
-            
-            # Obtener datos para filtros
             ejercicios = db.obtener_ejercicios()
             unidades = db.obtener_unidades_tematicas()
             
-            # Filtros
-            unidades_filtro = st.multiselect(
-                "🎯 Unidades Temáticas",
-                unidades,
-                default=[],
-                help="Selecciona unidades específicas o deja vacío para todas"
-            )
-            
-            dificultades_filtro = st.multiselect(
-                "🎚️ Nivel de Dificultad",
-                ["Básico", "Intermedio", "Avanzado", "Desafío"],
-                default=[],
-                help="Selecciona niveles específicos o deja vacío para todos"
-            )
-            
-            modalidades_filtro = st.multiselect(
-                "💻 Modalidad",
-                ["Teórico", "Computacional", "Mixto"],
-                default=[],
-                help="Selecciona modalidades específicas"
-            )
-            
-            # Búsqueda por texto
-            texto_busqueda = st.text_input(
-                "🔎 Buscar en título/contenido",
-                placeholder="Ej: convolución, fourier, laplace..."
-            )
+            unidades_filtro = st.multiselect("🎯 Unidades Temáticas", unidades, default=[])
+            dificultades_filtro = st.multiselect("🎚️ Nivel de Dificultad", ["Básico", "Intermedio", "Avanzado", "Desafío"], default=[])
+            modalidades_filtro = st.multiselect("💻 Modalidad", ["Teórico", "Computacional", "Mixto"], default=[])
+            texto_busqueda = st.text_input("🔎 Buscar en título/contenido", placeholder="Ej: convolución...")
             
             st.divider()
             
-            # CARRITO DE SELECCIÓN
             st.header("🛒 Ejercicios Seleccionados")
             st.write(f"**Total:** {len(st.session_state.ejercicios_seleccionados)}")
-            
             if st.session_state.ejercicios_seleccionados:
-                # Mostrar resumen
                 for i, ej_id in enumerate(st.session_state.ejercicios_seleccionados, 1):
                     ej = next((e for e in ejercicios if e['id'] == ej_id), None)
-                    if ej:
-                        st.write(f"{i}. {ej.get('titulo', 'Sin título')[:30]}...")
-                
-                # Botones de acción
+                    if ej: st.write(f"{i}. {ej.get('titulo', 'Sin título')[:30]}...")
                 if st.button("🗑️ Limpiar Selección", use_container_width=True):
                     st.session_state.ejercicios_seleccionados = []
                     st.rerun()
-                
                 if st.button("🎯 Ir a Generar Documento", type="primary", use_container_width=True):
-                    # Pasar ejercicios seleccionados a la página de generación
                     st.session_state.ejercicios_para_documento = st.session_state.ejercicios_seleccionados.copy()
-                    st.success("✅ Ejercicios listos para generar documento!")
-                    st.info("👉 Ve a la página **05_🎯_Generar_Prueba** para crear tu documento")
-            
-            else:
-                st.info("Selecciona ejercicios de la lista principal")
-        
-        # ÁREA PRINCIPAL - RESULTADOS DE BÚSQUEDA
+                    st.success("✅ ¡Listo! Ve a la página de Generación.")
         
         # Aplicar filtros
-        ejercicios_filtrados = ejercicios.copy()
-        
-        # Filtro por unidades
+        ejercicios_filtrados = ejercicios
         if unidades_filtro:
-            ejercicios_filtrados = [e for e in ejercicios_filtrados 
-                                  if e.get('unidad_tematica') in unidades_filtro]
-        
-        # Filtro por dificultad
+            ejercicios_filtrados = [e for e in ejercicios_filtrados if e.get('unidad_tematica') in unidades_filtro]
         if dificultades_filtro:
-            ejercicios_filtrados = [e for e in ejercicios_filtrados 
-                                  if e.get('nivel_dificultad') in dificultades_filtro]
-        
-        # Filtro por modalidad
+            ejercicios_filtrados = [e for e in ejercicios_filtrados if e.get('nivel_dificultad') in dificultades_filtro]
         if modalidades_filtro:
-            ejercicios_filtrados = [e for e in ejercicios_filtrados 
-                                  if e.get('modalidad') in modalidades_filtro]
-        
-        # Filtro por texto
+            ejercicios_filtrados = [e for e in ejercicios_filtrados if e.get('modalidad') in modalidades_filtro]
         if texto_busqueda:
             texto_lower = texto_busqueda.lower()
-            ejercicios_filtrados = [e for e in ejercicios_filtrados 
-                                  if (texto_lower in e.get('titulo', '').lower() or 
-                                      texto_lower in e.get('enunciado', '').lower() or
-                                      texto_lower in e.get('unidad_tematica', '').lower())]
+            ejercicios_filtrados = [e for e in ejercicios_filtrados if (texto_lower in e.get('titulo', '').lower() or texto_lower in e.get('enunciado', '').lower())]
         
-        # Mostrar estadísticas
         col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("📚 Total Disponibles", len(ejercicios))
-        with col2:
-            st.metric("🔍 Filtrados", len(ejercicios_filtrados))
-        with col3:
-            st.metric("✅ Seleccionados", len(st.session_state.ejercicios_seleccionados))
-        
+        col1.metric("📚 Total Disponibles", len(ejercicios))
+        col2.metric("🔍 Filtrados", len(ejercicios_filtrados))
+        col3.metric("✅ Seleccionados", len(st.session_state.ejercicios_seleccionados))
         st.divider()
         
-        # LISTA DE EJERCICIOS CON SELECCIÓN
         if ejercicios_filtrados:
             st.subheader(f"📋 Ejercicios Encontrados ({len(ejercicios_filtrados)})")
-            
-            # Opción de seleccionar todos los filtrados
-            col1, col2 = st.columns([3, 1])
-            with col2:
-                if st.button("✅ Seleccionar Todos los Filtrados"):
-                    for ej in ejercicios_filtrados:
-                        if ej['id'] not in st.session_state.ejercicios_seleccionados:
-                            st.session_state.ejercicios_seleccionados.append(ej['id'])
-                    st.rerun()
-            
-            # Mostrar ejercicios con checkboxes
             for ejercicio in ejercicios_filtrados:
                 mostrar_ejercicio_con_seleccion(ejercicio)
-                
         else:
-            st.warning("🔍 No se encontraron ejercicios con los filtros aplicados")
-            if unidades_filtro or dificultades_filtro or modalidades_filtro or texto_busqueda:
-                st.info("💡 Intenta reducir los filtros o cambiar los términos de búsqueda")
+            st.warning("🔍 No se encontraron ejercicios con los filtros aplicados.")
     
     except Exception as e:
         st.error(f"Error: {str(e)}")
@@ -167,87 +137,52 @@ def main():
 
 def mostrar_ejercicio_con_seleccion(ejercicio):
     """Muestra un ejercicio con opción de selección"""
-    
-    # Container para el ejercicio
     with st.container():
         col_check, col_content = st.columns([0.1, 0.9])
         
-        # Checkbox de selección
         with col_check:
-            ejercicio_seleccionado = st.checkbox(
-                "",
-                value=ejercicio['id'] in st.session_state.ejercicios_seleccionados,
-                key=f"check_{ejercicio['id']}",
-                help="Seleccionar para documento"
-            )
-            
-            # Actualizar estado de selección
-            if ejercicio_seleccionado:
-                if ejercicio['id'] not in st.session_state.ejercicios_seleccionados:
-                    st.session_state.ejercicios_seleccionados.append(ejercicio['id'])
-            else:
-                if ejercicio['id'] in st.session_state.ejercicios_seleccionados:
-                    st.session_state.ejercicios_seleccionados.remove(ejercicio['id'])
+            is_selected = st.checkbox("", value=ejercicio['id'] in st.session_state.ejercicios_seleccionados, key=f"check_{ejercicio['id']}")
+            if is_selected and ejercicio['id'] not in st.session_state.ejercicios_seleccionados:
+                st.session_state.ejercicios_seleccionados.append(ejercicio['id'])
+            elif not is_selected and ejercicio['id'] in st.session_state.ejercicios_seleccionados:
+                st.session_state.ejercicios_seleccionados.remove(ejercicio['id'])
         
-        # Contenido del ejercicio
         with col_content:
-            # Header con título y metadatos
             col_title, col_meta = st.columns([2, 1])
-            
             with col_title:
                 st.markdown(f"### {ejercicio.get('titulo', 'Sin título')}")
-            
             with col_meta:
-                # Badges de información
-                if ejercicio.get('unidad_tematica'):
-                    st.markdown(f"🎯 **{ejercicio['unidad_tematica']}**")
+                if ejercicio.get('unidad_tematica'): st.markdown(f"🎯 **{ejercicio['unidad_tematica']}**")
                 if ejercicio.get('nivel_dificultad'):
                     color = {"Básico": "green", "Intermedio": "orange", "Avanzado": "red", "Desafío": "purple"}.get(ejercicio['nivel_dificultad'], "blue")
                     st.markdown(f":{color}[🎚️ {ejercicio['nivel_dificultad']}]")
-                if ejercicio.get('tiempo_estimado'):
-                    st.markdown(f"⏱️ **{ejercicio['tiempo_estimado']} min**")
+                if ejercicio.get('tiempo_estimado'): st.markdown(f"⏱️ **{ejercicio['tiempo_estimado']} min**")
             
-            # Enunciado (preview)
             if ejercicio.get('enunciado'):
-                enunciado_preview = ejercicio['enunciado'][:200]
-                if len(ejercicio['enunciado']) > 200:
-                    enunciado_preview += "..."
-                st.write(enunciado_preview)
+                enunciado_md = convert_latex_to_markdown(ejercicio['enunciado'])
+                enunciado_preview = enunciado_md[:300] + ("..." if len(enunciado_md) > 300 else "")
+                st.markdown(enunciado_preview, unsafe_allow_html=True)
             
-            # Información adicional en expander
             with st.expander("👁️ Ver detalles completos"):
-                # Enunciado completo
                 if ejercicio.get('enunciado'):
                     st.write("**Enunciado completo:**")
-                    st.write(ejercicio['enunciado'])
+                    st.markdown(convert_latex_to_markdown(ejercicio['enunciado']), unsafe_allow_html=True)
                 
-                # Datos de entrada
-                if ejercicio.get('datos_entrada'):
-                    st.write("**Datos:**")
-                    st.write(ejercicio['datos_entrada'])
-                
-                # Solución
                 if ejercicio.get('solucion_completa'):
                     st.write("**Solución:**")
-                    st.write(ejercicio['solucion_completa'])
+                    st.markdown(convert_latex_to_markdown(ejercicio['solucion_completa']), unsafe_allow_html=True)
                 
-                # Código Python
                 if ejercicio.get('codigo_python'):
                     st.write("**Código Python:**")
                     st.code(ejercicio['codigo_python'], language='python')
                 
-                # Metadatos adicionales
+                st.write("---")
                 col1, col2 = st.columns(2)
                 with col1:
-                    if ejercicio.get('modalidad'):
-                        st.write(f"**Modalidad:** {ejercicio['modalidad']}")
-                    if ejercicio.get('fuente'):
-                        st.write(f"**Fuente:** {ejercicio['fuente']}")
-                
+                    if ejercicio.get('modalidad'): st.write(f"**Modalidad:** {ejercicio['modalidad']}")
+                    if ejercicio.get('fuente'): st.write(f"**Fuente:** {ejercicio['fuente']}")
                 with col2:
-                    if ejercicio.get('fecha_creacion'):
-                        fecha = ejercicio['fecha_creacion'][:10] if len(ejercicio['fecha_creacion']) > 10 else ejercicio['fecha_creacion']
-                        st.write(f"**Creado:** {fecha}")
+                    if ejercicio.get('fecha_creacion'): st.write(f"**Creado:** {ejercicio['fecha_creacion'][:10]}")
                     st.write(f"**ID:** {ejercicio['id']}")
         
         st.divider()
