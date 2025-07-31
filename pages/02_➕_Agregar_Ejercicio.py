@@ -4,6 +4,7 @@ Sistema de Gestión de Ejercicios - Señales y Sistemas
 """
 
 import streamlit as st
+from pathlib import Path
 from datetime import datetime
 
 # Configuración de la página
@@ -85,6 +86,7 @@ def main():
         st.subheader("📄 Contenido")
         enunciado = st.text_area("Enunciado del Ejercicio*", height=150)
         datos_entrada = st.text_area("Datos de Entrada", height=100)
+        imagen_subida = st.file_uploader("Subir imagen asociada (opcional)", type=["png", "jpg", "jpeg", "gif"])
         
         col1, col2 = st.columns(2)
         with col1:
@@ -112,6 +114,20 @@ def main():
             if titulo and unidad_tematica and enunciado:
                 # Aquí iría la lógica para guardar en la base de datos
                 try:
+                    # --- LÓGICA PARA GUARDAR IMAGEN ---
+                    imagen_path_guardado = None
+                    if imagen_subida:
+                        IMAGES_DIR = Path("images")
+                        IMAGES_DIR.mkdir(exist_ok=True)
+                        
+                        # Guardar el archivo subido
+                        dest_path = IMAGES_DIR / imagen_subida.name
+                        with open(dest_path, "wb") as f:
+                            f.write(imagen_subida.getbuffer())
+                        
+                        # Guardar la ruta relativa
+                        imagen_path_guardado = str(dest_path).replace('\\', '/')
+
                     from database.db_manager import DatabaseManager
                     
                     # Preparar datos del ejercicio
@@ -129,6 +145,7 @@ def main():
                         'datos_entrada': datos_entrada,
                         'solucion_completa': solucion_completa,
                         'respuesta_final': respuesta_final,
+                        'imagen_path': imagen_path_guardado,
                         'codigo_python': codigo_python,
                         'prerrequisitos': prerrequisitos,
                         'comentarios_docente': comentarios_docente,
@@ -151,6 +168,8 @@ def main():
                         st.write(f"**Dificultad:** {nivel_dificultad}")
                         st.write(f"**Modalidad:** {modalidad}")
                         st.write(f"**Tiempo estimado:** {tiempo_estimado} minutos")
+                        if imagen_path_guardado:
+                            st.success(f"🖼️ Imagen guardada en: `{imagen_path_guardado}`")
                         
                 except Exception as e:
                     st.error(f"❌ Error guardando ejercicio: {e}")

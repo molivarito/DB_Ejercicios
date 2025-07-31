@@ -41,6 +41,8 @@ class DatabaseManager:
             respuesta_final TEXT,
             codigo_python TEXT,
             figuras_asociadas TEXT,
+            imagen_path TEXT,
+            solucion_imagen_path TEXT,
             versiones_alternativas TEXT,
             parametros_variables TEXT,
             dificultad_escalable BOOLEAN DEFAULT FALSE,
@@ -60,6 +62,19 @@ class DatabaseManager:
         )
         """)
         
+        # Para compatibilidad con bases de datos existentes, agregar la columna si no existe
+        try:
+            cursor.execute("ALTER TABLE ejercicios ADD COLUMN imagen_path TEXT;")
+        except sqlite3.OperationalError:
+            # La columna ya existe, no hay problema
+            pass
+        
+        try:
+            cursor.execute("ALTER TABLE ejercicios ADD COLUMN solucion_imagen_path TEXT;")
+        except sqlite3.OperationalError:
+            # La columna ya existe, no hay problema
+            pass
+
         conn.commit()
         conn.close()
     

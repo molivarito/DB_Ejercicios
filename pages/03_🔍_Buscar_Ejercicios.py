@@ -7,6 +7,7 @@ VERSIÓN FINAL: Corregido el uso de st.dialog y el renderizado de LaTeX.
 import streamlit as st
 import pandas as pd
 import re
+from pathlib import Path
 from datetime import datetime
 
 # Importar dependencias
@@ -117,11 +118,59 @@ def mostrar_ejercicio_con_seleccion(ejercicio, db: DatabaseManager):
             new_unidad = st.selectbox("Unidad", unidades, index=unidad_idx)
             dificultad_idx = dificultades.index(ejercicio.get('nivel_dificultad')) if ejercicio.get('nivel_dificultad') in dificultades else 1
             new_dificultad = st.selectbox("Dificultad", dificultades, index=dificultad_idx)
+
             new_enunciado = st.text_area("Enunciado (LaTeX)", value=ejercicio.get('enunciado', ''), height=250)
             new_solucion = st.text_area("Solución (LaTeX)", value=ejercicio.get('solucion_completa', ''), height=250)
-            
+
+            # --- GESTIÓN DE IMAGEN ---
+            st.divider()
+            st.write("**Gestión de Imagen**")
+            current_image_path_str = ejercicio.get('imagen_path')
+            delete_image = False
+            if current_image_path_str:
+                image_path = Path(current_image_path_str)
+                if image_path.is_file():
+                    st.write("Imagen actual:")
+                    st.image(str(image_path), use_column_width=True)
+                    delete_image = st.checkbox("🗑️ Eliminar imagen actual", key=f"delete_img_{ejercicio['id']}")
+                else:
+                    st.warning(f"⚠️ No se encontró la imagen en la ruta: `{current_image_path_str}`")
+            else:
+                st.write("Este ejercicio no tiene imagen asociada.")
+
+            new_image_file = st.file_uploader("Subir nueva imagen (reemplazará la actual)", type=["png", "jpg", "jpeg", "gif"])
+            st.divider()
+
             if st.form_submit_button("💾 Guardar Cambios", type="primary"):
                 data_to_update = {'titulo': new_titulo, 'unidad_tematica': new_unidad, 'nivel_dificultad': new_dificultad, 'enunciado': new_enunciado, 'solucion_completa': new_solucion}
+
+                # --- LÓGICA PARA GUARDAR/ELIMINAR IMAGEN ---
+                image_path_to_update = current_image_path_str
+
+                if new_image_file:
+                    IMAGES_DIR = Path("images")
+                    IMAGES_DIR.mkdir(exist_ok=True)
+                    dest_path = IMAGES_DIR / new_image_file.name
+                    with open(dest_path, "wb") as f:
+                        f.write(new_image_file.getbuffer())
+                    
+                    new_path_str = str(dest_path).replace('\\', '/')
+                    image_path_to_update = new_path_str
+                    st.toast(f"Nueva imagen '{new_image_file.name}' guardada.")
+
+                    if current_image_path_str and Path(current_image_path_str).exists() and Path(current_image_path_str) != dest_path:
+                        Path(current_image_path_str).unlink(missing_ok=True)
+                        st.toast(f"Imagen antigua '{Path(current_image_path_str).name}' eliminada.")
+
+                elif delete_image and current_image_path_str:
+                    image_path_to_update = None
+                    if Path(current_image_path_str).exists():
+                        Path(current_image_path_str).unlink(missing_ok=True)
+                        st.toast(f"Imagen '{Path(current_image_path_str).name}' eliminada.")
+
+                if image_path_to_update != current_image_path_str:
+                    data_to_update['imagen_path'] = image_path_to_update
+
                 if db.actualizar_ejercicio(ejercicio['id'], data_to_update):
                     st.toast("✅ Ejercicio actualizado!", icon="🎉"); st.rerun()
                 else:
@@ -161,6 +210,15 @@ def mostrar_ejercicio_con_seleccion(ejercicio, db: DatabaseManager):
                 if ejercicio.get('enunciado'):
                     st.write("**Enunciado completo:**")
                     st.markdown(convert_latex_to_markdown(ejercicio['enunciado']), unsafe_allow_html=True)
+                
+                # --- VISUALIZACIÓN DE IMAGEN ---
+                if ejercicio.get('imagen_path'):
+                    image_path = Path(ejercicio['imagen_path'])
+                    if image_path.is_file():
+                        st.image(str(image_path), caption=f"Imagen: {image_path.name}")
+                    else:
+                        st.warning(f"⚠️ No se encontró la imagen en la ruta: `{ejercicio['imagen_path']}`")
+
                 if ejercicio.get('solucion_completa'):
                     st.write("**Solución:**")
                     st.markdown(convert_latex_to_markdown(ejercicio['solucion_completa']), unsafe_allow_html=True)

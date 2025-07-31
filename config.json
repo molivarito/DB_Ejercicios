@@ -1,0 +1,12 @@
+{
+    "profile": {
+        "professor_name": "Patricio de la Cuadra",
+        "course_name": "IEE2103 - Señales y Sistemas",
+        "university_name": "Pontificia Universidad Católica de Chile",
+        "current_semester": "2025-1",
+        "email": "pcuadra@uc.cl"
+    },
+    "app": {
+        "language": "Español"
+    }
+}

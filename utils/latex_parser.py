@@ -30,6 +30,8 @@ class ParsedExercise:
     comentarios: str = ""
     pattern_used: str = ""
     confidence_score: float = 0.0
+    image_filename: Optional[str] = None
+    solucion_image_filename: Optional[str] = None
     
     def __post_init__(self):
         if self.subtemas is None: self.subtemas = []
@@ -117,6 +119,34 @@ class LaTeXParser:
         
         return exercises
     
+    def _extract_image_and_clean_content(self, content: str) -> Tuple[str, Optional[str]]:
+        """
+        Busca un \includegraphics, preferiblemente dentro de un entorno figure/subfigure.
+        Extrae el path de la primera imagen y limpia el entorno completo del texto.
+        """
+        image_filename = None
+        
+        # Pattern to find a figure environment (non-greedy)
+        figure_pattern = r'\\begin\{figure\}.*?\\end\{figure\}'
+        figure_match = re.search(figure_pattern, content, re.DOTALL)
+        
+        if figure_match:
+            figure_block = figure_match.group(0)
+            # Pattern to find includegraphics inside the figure
+            image_pattern = r'\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}'
+            image_match = re.search(image_pattern, figure_block)
+            
+            if image_match:
+                image_filename = image_match.group(1).strip()
+                logger.info(f"    -> Imagen encontrada en entorno 'figure': {image_filename}")
+            else:
+                logger.info("    -> Entorno 'figure' encontrado pero sin \\includegraphics. Se eliminará el bloque.")
+
+            # Remove the entire figure block
+            content = content.replace(figure_block, '', 1)
+
+        return content.strip(), image_filename
+
     def _extract_individual_items_v4_fixed(self, subsection_content: str, subsection_title: str, start_index: int) -> Tuple[List[ParsedExercise], int]:
         """
         Extrae ejercicios individuales de una subsección.
@@ -137,7 +167,15 @@ class LaTeXParser:
         
         for i, item_content in enumerate(items):
             if item_content.strip():
-                enunciado, solucion = self._extract_statement_and_solution_v4_fixed(item_content)
+                # 1. Separar enunciado y solución primero
+                enunciado_raw, solucion_raw = self._extract_statement_and_solution_v4_fixed(item_content)
+                
+                # 2. Extraer imagen del enunciado
+                enunciado, image_filename = self._extract_image_and_clean_content(enunciado_raw)
+                
+                # 3. Extraer imagen de la solución (si existe)
+                solucion, solucion_image_filename = (self._extract_image_and_clean_content(solucion_raw) if solucion_raw else (None, None))
+
                 if enunciado.strip():
                     difficulty = self._detect_difficulty_v4_fixed(enunciado)
                     exercise_type = self._detect_exercise_type(enunciado)
@@ -149,7 +187,7 @@ class LaTeXParser:
                     exercise = ParsedExercise(
                         titulo=titulo,
                         enunciado=self._clean_latex_text(enunciado),
-                        solucion_completa=self._clean_latex_text(solucion) if solucion else None,
+                        solucion_completa=self._clean_latex_text(solucion) if solucion else None, # Limpiar texto después de extraer imagen
                         unidad_tematica=unit,
                         nivel_dificultad=difficulty,
                         tipo_ejercicio=exercise_type,
@@ -158,7 +196,9 @@ class LaTeXParser:
                         pattern_used="patricio_format_v4_fixed_robust",
                         confidence_score=0.98,
                         palabras_clave=self._extract_keywords(enunciado),
-                        comentarios=f"Extraído de subsección: {clean_subsection_title}"
+                        comentarios=f"Extraído de subsección: {clean_subsection_title}",
+                        image_filename=image_filename,
+                        solucion_image_filename=solucion_image_filename
                     )
                     exercises.append(exercise)
                     logger.info(f"    -> Ejercicio creado: {titulo}")
@@ -204,24 +244,37 @@ class LaTeXParser:
         return nested_ranges
 
     def _extract_statement_and_solution_v4_fixed(self, item_content: str) -> Tuple[str, Optional[str]]:
-        solution_patterns = [
-            r'\\ifanswers\s*\{\s*\\color\{red\}\s*\\textbf\{Solución:\}(.*?)\}\s*\\fi',
-            r'\\ifanswers\s*\{\s*\\color\{red\}\\textbf\{Solución:\}(.*?)\}\s*\\fi',
-            r'\\ifanswers\s*\{\s*\\color\{red\}\s*(.*?)\}\s*\\fi',
-            r'\\ifanswers\s*\{(.*?)\}\s*\\fi'
-        ]
-        solucion = None; enunciado = item_content
-        for pattern in solution_patterns:
-            match = re.search(pattern, item_content, re.DOTALL)
-            if match:
-                solucion_raw = match.group(1).strip()
-                skip_phrases = ['resuelta en ayudantía', 'ver ayudantía', 'en clases']
-                if any(phrase in solucion_raw.lower() for phrase in skip_phrases):
-                    solucion = None
-                else:
-                    solucion = solucion_raw
-                enunciado = re.sub(pattern, '', item_content, flags=re.DOTALL).strip()
-                break
+        # A more robust pattern that just captures the content of the \ifanswers block.
+        solution_pattern = r'\\ifanswers\s*\{(.*?)(?:\}\s*\\fi|\\fi\s*\})'
+        solucion = None
+        enunciado = item_content
+        
+        match = re.search(solution_pattern, item_content, re.DOTALL)
+        if match:
+            solucion_raw = match.group(1).strip()
+            
+            # Check for "resuelta en ayudantía" and similar phrases
+            skip_phrases = ['resuelta en ayudantía', 'ver ayudantía', 'en clases']
+            if any(phrase in solucion_raw.lower() for phrase in skip_phrases):
+                solucion = None
+            else:
+                # Clean known headers from the raw solution text
+                headers_to_clean = [
+                    r'^\s*\\color\{red\}\s*\\textbf\{Solución:\s*\}',
+                    r'^\s*\\color\{red\}\s*',
+                    r'^\s*\\textbf\{Solución:\s*\}',
+                    r'^\s*Solución:\s*'
+                ]
+                cleaned_solucion = solucion_raw
+                for header_pattern in headers_to_clean:
+                    # Use re.sub with count=1 to only remove the header at the start
+                    cleaned_solucion = re.sub(header_pattern, '', cleaned_solucion, count=1, flags=re.IGNORECASE).strip()
+                
+                solucion = cleaned_solucion
+            
+            # Remove the entire \ifanswers block from the enunciado
+            enunciado = item_content.replace(match.group(0), '', 1).strip()
+            
         return enunciado, solucion
 
     def _detect_difficulty_v4_fixed(self, content: str) -> str:

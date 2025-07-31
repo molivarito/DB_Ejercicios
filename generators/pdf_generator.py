@@ -37,6 +37,24 @@ class RealTemplatePDFGenerator:
         else:
             print(f"✅ Templates encontrados: {list(self.required_templates.values())}")
     
+    def _copy_images_to_output(self, exercises: List[Dict]):
+        """Copia las imágenes de los ejercicios al directorio de salida para la compilación."""
+        image_paths = set()
+        for exercise in exercises:
+            if exercise.get('imagen_path'):
+                image_paths.add(Path(exercise['imagen_path']))
+            if exercise.get('solucion_imagen_path'):
+                image_paths.add(Path(exercise['solucion_imagen_path']))
+
+        if not image_paths:
+            return
+
+        for src_path in image_paths:
+            if src_path.is_file():
+                dest_path = self.output_dir / src_path.name
+                shutil.copy(src_path, dest_path)
+
+    
     def _clean_text(self, text):
         """Limpia texto básico para LaTeX"""
         if not text:
@@ -48,7 +66,7 @@ class RealTemplatePDFGenerator:
         text = text.replace('#', ' numero ')
         return text
     
-    def _generate_ejercicios_prueba(self, exercises):
+    def _generate_ejercicios_prueba(self, exercises, incluir_soluciones=False):
         """Genera ejercicios para prueba"""
         latex_content = ""
         
@@ -56,10 +74,34 @@ class RealTemplatePDFGenerator:
             titulo = self._clean_text(exercise.get('titulo', f'Ejercicio {i}'))
             enunciado = self._clean_text(exercise.get('enunciado', ''))
             
+            image_latex = ""
+            if exercise.get('imagen_path'):
+                image_path = Path(exercise['imagen_path'])
+                # Usamos solo el nombre del archivo, ya que se copia al dir de salida
+                image_latex = f"\\begin{{center}}\n\\includegraphics[width=0.7\\textwidth]{{{image_path.name}}}\n\\end{{center}}\n"
+            
+            respuesta_block = "\\respuesta[6cm]"
+            if incluir_soluciones and (exercise.get('solucion_completa') or exercise.get('solucion_imagen_path')):
+                solucion_texto = self._clean_text(exercise.get('solucion_completa', ''))
+                solucion_imagen_latex = ""
+                if exercise.get('solucion_imagen_path'):
+                    image_path = Path(exercise['solucion_imagen_path'])
+                    solucion_imagen_latex = f"\\begin{{center}}\n\\includegraphics[width=0.6\\textwidth]{{{image_path.name}}}\n\\end{{center}}\n"
+                
+                respuesta_block = f"""
+{{\\color{{red}}
+\\textbf{{Solución:}}
+
+{solucion_texto}
+{solucion_imagen_latex}
+}}
+"""
+
             latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{6}}
  {enunciado}
+ {image_latex}
  
- \\respuesta[6cm]
+ {respuesta_block}
 \\end{{ejercicio}}
 
 """
@@ -69,7 +111,7 @@ class RealTemplatePDFGenerator:
         
         return latex_content
     
-    def _generate_ejercicios_tarea(self, exercises):
+    def _generate_ejercicios_tarea(self, exercises, incluir_soluciones=False):
         """Genera ejercicios para tarea separando teóricos y computacionales"""
         teoricos = [e for e in exercises if e.get('modalidad') != 'Computacional']
         computacionales = [e for e in exercises if e.get('modalidad') == 'Computacional']
@@ -83,8 +125,30 @@ class RealTemplatePDFGenerator:
                 titulo = self._clean_text(exercise.get('titulo', f'Ejercicio Teórico {i}'))
                 enunciado = self._clean_text(exercise.get('enunciado', ''))
                 
+                image_latex = ""
+                if exercise.get('imagen_path'):
+                    image_path = Path(exercise['imagen_path'])
+                    image_latex = f"\\begin{{center}}\n\\includegraphics[width=0.7\\textwidth]{{{image_path.name}}}\n\\end{{center}}\n"
+
+                solucion_block = ""
+                if incluir_soluciones and (exercise.get('solucion_completa') or exercise.get('solucion_imagen_path')):
+                    solucion_texto = self._clean_text(exercise.get('solucion_completa', ''))
+                    solucion_imagen_latex = ""
+                    if exercise.get('solucion_imagen_path'):
+                        image_path = Path(exercise['solucion_imagen_path'])
+                        solucion_imagen_latex = f"\\begin{{center}}\n\\includegraphics[width=0.5\\textwidth]{{{image_path.name}}}\n\\end{{center}}\n"
+                    
+                    solucion_block = f"""
+{{\\color{{red}}
+\\textbf{{Solución:}} {solucion_texto}
+{solucion_imagen_latex}
+}}
+"""
+
                 latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{2}}
  {enunciado}
+ {image_latex}
+{solucion_block}
 \\end{{ejercicio}}
 
 """
@@ -98,9 +162,32 @@ class RealTemplatePDFGenerator:
                 enunciado = self._clean_text(exercise.get('enunciado', ''))
                 codigo = exercise.get('codigo_python', '')
                 
+                image_latex = ""
+                if exercise.get('imagen_path'):
+                    image_path = Path(exercise['imagen_path'])
+                    image_latex = f"\\begin{{center}}\n\\includegraphics[width=0.7\\textwidth]{{{image_path.name}}}\n\\end{{center}}\n"
+
+                solucion_block = ""
+                if incluir_soluciones and (exercise.get('solucion_completa') or exercise.get('solucion_imagen_path')):
+                    solucion_texto = self._clean_text(exercise.get('solucion_completa', ''))
+                    solucion_imagen_latex = ""
+                    if exercise.get('solucion_imagen_path'):
+                        image_path = Path(exercise['solucion_imagen_path'])
+                        solucion_imagen_latex = f"\\begin{{center}}\n\\includegraphics[width=0.5\\textwidth]{{{image_path.name}}}\n\\end{{center}}\n"
+                    
+                    solucion_block = f"""
+{{\\color{{red}}
+\\textbf{{Solución:}} {solucion_texto}
+{solucion_imagen_latex}
+}}
+"""
+
                 latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{2}}
  {enunciado}
  
+ {image_latex}
+ 
+{solucion_block}
 """
                 if codigo:
                     latex_content += f""" \\begin{{codigo}}
@@ -115,7 +202,7 @@ class RealTemplatePDFGenerator:
         
         return latex_content
     
-    def _generate_ejercicios_guia(self, exercises):
+    def _generate_ejercicios_guia(self, exercises, incluir_soluciones=False):
         """Genera ejercicios para guía agrupados por unidad"""
         # Agrupar por unidad temática
         unidades = {}
@@ -136,12 +223,35 @@ class RealTemplatePDFGenerator:
                 dificultad = exercise.get('nivel_dificultad', 'Básico')
                 tiempo = exercise.get('tiempo_estimado', 15)
                 
+                image_latex = ""
+                if exercise.get('imagen_path'):
+                    image_path = Path(exercise['imagen_path'])
+                    image_latex = f"\\begin{{center}}\n\\includegraphics[width=0.7\\textwidth]{{{image_path.name}}}\n\\end{{center}}\n"
+
+                respuesta_block = "\\respuesta[8cm]"
+                if incluir_soluciones and (exercise.get('solucion_completa') or exercise.get('solucion_imagen_path')):
+                    solucion_texto = self._clean_text(exercise.get('solucion_completa', ''))
+                    solucion_imagen_latex = ""
+                    if exercise.get('solucion_imagen_path'):
+                        image_path = Path(exercise['solucion_imagen_path'])
+                        solucion_imagen_latex = f"\\begin{{center}}\n\\includegraphics[width=0.6\\textwidth]{{{image_path.name}}}\n\\end{{center}}\n"
+                    
+                    respuesta_block = f"""
+{{\\color{{red}}
+\\textbf{{Solución:}}
+
+{solucion_texto}
+{solucion_imagen_latex}
+}}
+"""
+
                 latex_content += f"""\\begin{{ejercicio}}[{titulo}]{{6}}
  \\textbf{{Dificultad:}} {dificultad} \\hfill \\textbf{{Tiempo:}} {tiempo} min
  
  {enunciado}
+ {image_latex}
  
- \\respuesta[8cm]
+ {respuesta_block}
 \\end{{ejercicio}}
 
 """
@@ -163,7 +273,7 @@ class RealTemplatePDFGenerator:
             
             # Compilar dos veces para referencias
             for _ in range(2):
-                result = subprocess.run(cmd, capture_output=True, text=True)
+                result = subprocess.run(cmd, capture_output=True, text=True, errors='ignore')
             
             os.chdir(original_dir)
             
@@ -186,18 +296,21 @@ class RealTemplatePDFGenerator:
             print(f"⚠️  Error compilando: {e}, manteniendo archivo .tex")
             return str(tex_path)
     
-    def generate_prueba(self, exercises: List[Dict], exam_info: Dict) -> Tuple[str, str]:
+    def generate_prueba(self, exercises: List[Dict], exam_info: Dict, incluir_soluciones: bool = False) -> Tuple[str, str]:
         """Genera prueba con ejercicios de la BD"""
         template_path = self.templates_dir / 'prueba_template.tex'
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_tex = self.output_dir / f"prueba_{timestamp}.tex"
         
+        # Copiar imágenes necesarias al directorio de salida
+        self._copy_images_to_output(exercises)
+
         # Leer template
         with open(template_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # Generar ejercicios dinámicos
-        exercises_latex = self._generate_ejercicios_prueba(exercises)
+        exercises_latex = self._generate_ejercicios_prueba(exercises, incluir_soluciones=incluir_soluciones)
         
         # Buscar y reemplazar la sección de ejercicios
         start_marker = "\\begin{ejercicio}[Manipulación de señales complejas]"
@@ -224,18 +337,21 @@ class RealTemplatePDFGenerator:
         
         return pdf_path, pdf_path
     
-    def generate_tarea(self, exercises: List[Dict], task_info: Dict) -> str:
+    def generate_tarea(self, exercises: List[Dict], task_info: Dict, incluir_soluciones: bool = False) -> str:
         """Genera tarea con ejercicios de la BD"""
         template_path = self.templates_dir / 'tarea_template.tex'
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_tex = self.output_dir / f"tarea_{timestamp}.tex"
         
+        # Copiar imágenes necesarias al directorio de salida
+        self._copy_images_to_output(exercises)
+
         # Leer template
         with open(template_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # Generar ejercicios dinámicos
-        exercises_latex = self._generate_ejercicios_tarea(exercises)
+        exercises_latex = self._generate_ejercicios_tarea(exercises, incluir_soluciones=incluir_soluciones)
         
         # MARCADORES CORRECTOS BASADOS EN TU TEMPLATE
         start_marker = "\\begin{ejerciciosteoricos}"
@@ -266,18 +382,21 @@ class RealTemplatePDFGenerator:
         
         return pdf_path
     
-    def generate_guia(self, exercises: List[Dict], guide_info: Dict) -> str:
+    def generate_guia(self, exercises: List[Dict], guide_info: Dict, incluir_soluciones: bool = False) -> str:
         """Genera guía con ejercicios de la BD"""
         template_path = self.templates_dir / 'guia_template.tex'
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_tex = self.output_dir / f"guia_{timestamp}.tex"
         
+        # Copiar imágenes necesarias al directorio de salida
+        self._copy_images_to_output(exercises)
+
         # Leer template
         with open(template_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         # Generar ejercicios dinámicos
-        exercises_latex = self._generate_ejercicios_guia(exercises)
+        exercises_latex = self._generate_ejercicios_guia(exercises, incluir_soluciones=incluir_soluciones)
         
         # Buscar y reemplazar sección de ejercicios
         start_marker = "\\section{Ejercicios}"

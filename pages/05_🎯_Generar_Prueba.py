@@ -271,7 +271,7 @@ def generar_con_templates_profesionales(tipo_documento, ejercicios, doc_info, in
             # Usar TUS métodos reales según el tipo de documento
             if tipo_documento == "Prueba/Interrogación":
                 st.info("📄 Usando template: prueba_template.tex")
-                resultado = pdf_gen.generate_prueba(ejercicios, doc_data)
+                resultado = pdf_gen.generate_prueba(ejercicios, doc_data, incluir_soluciones=incluir_soluciones)
                 
                 # Tu método retorna una tupla (principal, soluciones)
                 if isinstance(resultado, tuple):
@@ -281,11 +281,11 @@ def generar_con_templates_profesionales(tipo_documento, ejercicios, doc_info, in
                     
             elif tipo_documento == "Tarea":
                 st.info("📄 Usando template: tarea_template.tex")
-                archivo_principal = pdf_gen.generate_tarea(ejercicios, doc_data)
+                archivo_principal = pdf_gen.generate_tarea(ejercicios, doc_data, incluir_soluciones=incluir_soluciones)
                 
             else:  # Guía
                 st.info("📄 Usando template: guia_template.tex")
-                archivo_principal = pdf_gen.generate_guia(ejercicios, doc_data)
+                archivo_principal = pdf_gen.generate_guia(ejercicios, doc_data, incluir_soluciones=incluir_soluciones)
             
             # Verificar que se generó el archivo
             if archivo_principal and os.path.exists(archivo_principal):
