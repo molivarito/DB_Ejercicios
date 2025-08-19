@@ -74,6 +74,12 @@ class DatabaseManager:
         except sqlite3.OperationalError:
             # La columna ya existe, no hay problema
             pass
+        
+        try:
+            cursor.execute("ALTER TABLE ejercicios ADD COLUMN estado_ia TEXT DEFAULT 'PENDIENTE';")
+        except sqlite3.OperationalError:
+            # La columna ya existe, no hay problema
+            pass
 
         conn.commit()
         conn.close()
@@ -83,12 +89,12 @@ class DatabaseManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Convertir listas a JSON strings
+        # Convertir listas a JSON strings para almacenamiento
         for field in ['subtemas', 'tipo_actividad', 'objetivos_curso', 'competencias_abet', 
-                     'habilidades_especificas', 'figuras_asociadas', 'semestre_usado', 
-                     'palabras_clave', 'conectado_con']:
+                     'habilidades_especificas', 'figuras_asociadas', 'semestre_usado', 'errores_comunes', 'hints',
+                     'palabras_clave', 'conectado_con', 'versiones_alternativas']:
             if field in ejercicio_data and isinstance(ejercicio_data[field], list):
-                ejercicio_data[field] = json.dumps(ejercicio_data[field])
+                ejercicio_data[field] = json.dumps(ejercicio_data[field], ensure_ascii=False)
         
         # Preparar campos y valores
         fields = list(ejercicio_data.keys())
@@ -137,9 +143,9 @@ class DatabaseManager:
         for row in rows:
             ejercicio = dict(row)
             # Convertir JSON strings de vuelta a listas
-            for field in ['subtemas', 'tipo_actividad', 'objetivos_curso', 'competencias_abet', 
-                         'habilidades_especificas', 'figuras_asociadas', 'semestre_usado', 
-                         'palabras_clave', 'conectado_con']:
+            for field in ['subtemas', 'tipo_actividad', 'objetivos_curso', 'competencias_abet',
+                         'habilidades_especificas', 'figuras_asociadas', 'semestre_usado', 'errores_comunes', 'hints',
+                         'palabras_clave', 'conectado_con', 'versiones_alternativas']:
                 if ejercicio.get(field):
                     try:
                         ejercicio[field] = json.loads(ejercicio[field])
@@ -162,9 +168,9 @@ class DatabaseManager:
         if row:
             ejercicio = dict(row)
             # Convertir JSON strings
-            for field in ['subtemas', 'tipo_actividad', 'objetivos_curso', 'competencias_abet', 
-                         'habilidades_especificas', 'figuras_asociadas', 'semestre_usado', 
-                         'palabras_clave', 'conectado_con']:
+            for field in ['subtemas', 'tipo_actividad', 'objetivos_curso', 'competencias_abet',
+                         'habilidades_especificas', 'figuras_asociadas', 'semestre_usado', 'errores_comunes', 'hints',
+                         'palabras_clave', 'conectado_con', 'versiones_alternativas']:
                 if ejercicio.get(field):
                     try:
                         ejercicio[field] = json.loads(ejercicio[field])
@@ -181,12 +187,12 @@ class DatabaseManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Convertir listas a JSON
+        # Convertir listas a JSON strings para almacenamiento
         for field in ['subtemas', 'tipo_actividad', 'objetivos_curso', 'competencias_abet', 
-                     'habilidades_especificas', 'figuras_asociadas', 'semestre_usado', 
-                     'palabras_clave', 'conectado_con']:
+                     'habilidades_especificas', 'figuras_asociadas', 'semestre_usado', 'errores_comunes', 'hints',
+                     'palabras_clave', 'conectado_con', 'versiones_alternativas']:
             if field in ejercicio_data and isinstance(ejercicio_data[field], list):
-                ejercicio_data[field] = json.dumps(ejercicio_data[field])
+                ejercicio_data[field] = json.dumps(ejercicio_data[field], ensure_ascii=False)
         
         ejercicio_data['fecha_modificacion'] = datetime.now().isoformat()
         
@@ -225,6 +231,16 @@ class DatabaseManager:
             if sol_image_path_str:
                 Path(sol_image_path_str).unlink(missing_ok=True)
                     
+        return success
+
+    def actualizar_estado_ia(self, ejercicio_id: int, estado: str) -> bool:
+        """Actualiza solo el estado de enriquecimiento de un ejercicio."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE ejercicios SET estado_ia = ? WHERE id = ?", (estado, ejercicio_id))
+        success = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
         return success
 
     def obtener_estadisticas(self) -> Dict:

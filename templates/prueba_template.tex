@@ -54,7 +54,7 @@
     \includegraphics[width=1.8cm]{logo-uc.pdf}
   \end{minipage}%
   \begin{minipage}{0.85\textwidth}
-    \small\color{pucblue}
+    \small
     \textbf{Pontificia Universidad Católica de Chile}\\
     Escuela de Ingeniería\\
     Departamento de Ingeniería Eléctrica\\
@@ -63,8 +63,8 @@
 }
 
 % Footer
-\fancyfoot[C]{\color{pucgray}\small Página \thepage}
-\fancyfoot[R]{\color{pucgray}\small Prof. Patricio de la Cuadra}
+\fancyfoot[C]{\small Página \thepage}
+\fancyfoot[R]{\small Prof. Patricio de la Cuadra}
 
 % ========== COMANDOS PERSONALIZADOS ==========
 % Funciones especiales de señales
@@ -88,12 +88,7 @@
 \newcommand{\respuesta}[1][4cm]{\vspace{#1}}
 
 % Comando para recuadros de puntos
-\newcommand{\puntos}[1]{%
-  \begin{tikzpicture}[baseline=(current bounding box.center)]
-    \node[draw=pucblue, fill=lightblue, rounded corners=3pt, 
-          inner sep=3pt, minimum width=1.5cm] {\textbf{#1 pts}};
-  \end{tikzpicture}%
-}
+\newcommand{\puntos}[1]{\texttt{[#1 puntos]}}
 
 % ========== CONFIGURACIÓN DE SECCIONES ==========
 \titleformat{\section}[hang]
@@ -109,8 +104,8 @@
 % Entorno para instrucciones
 \newenvironment{instrucciones}{%
   \begin{tcolorbox}[
-    colback=lightblue,
-    colframe=pucblue,
+    colback=black!5,
+    colframe=black,
     boxrule=1pt,
     rounded corners=5pt,
     left=10pt,
@@ -118,7 +113,7 @@
     top=8pt,
     bottom=8pt
   ]
-  \textbf{\color{pucblue}INSTRUCCIONES:}
+  \textbf{INSTRUCCIONES:}
   \begin{enumerate}[leftmargin=20pt]
 }{%
   \end{enumerate}
@@ -143,17 +138,7 @@
 % ========== COMANDO PRINCIPAL ==========
 \newcommand{\tituloPrueba}{%
   \begin{center}
-    % Título principal
-    \begin{tcolorbox}[
-      colback=pucblue,
-      coltext=white,
-      boxrule=0pt,
-      rounded corners=8pt,
-      center title,
-      fonttitle=\Large\bfseries,
-      title=\nombrePrueba
-    ]
-    \end{tcolorbox}
+    {\Large\bfseries\nombrePrueba}
     
     \vspace{0.5cm}
     
@@ -167,7 +152,7 @@
     \vspace{0.3cm}
     
     % Línea divisoria
-    \textcolor{pucblue}{\rule{\textwidth}{1.5pt}}
+    \rule{\textwidth}{1.5pt}
   \end{center}
   
   \vspace{0.5cm}
@@ -178,25 +163,26 @@
 \newenvironment{ejercicio}[2][]{%
   \stepcounter{ejercicio}
   \vspace{0.8cm}
-  \noindent
+  % Título del ejercicio
+  \noindent\begin{tabularx}{\linewidth}{@{} X r @{}}
+    \textbf{Ejercicio \theejercicio} \ifx&#1&\else - #1\fi & \puntos{#2}
+  \end{tabularx}
+  
   \begin{tcolorbox}[
     enhanced,
     breakable,
     colback=white,
-    colframe=pucblue,
-    boxrule=1.5pt,
+    colframe=pucgray,
+    boxrule=1pt,
     rounded corners=5pt,
-    attach boxed title to top left={xshift=10pt, yshift=-5pt},
-    boxed title style={
-      colback=pucblue,
-      coltext=white,
-      rounded corners=3pt,
-      boxrule=0pt
-    },
-    title={\textbf{Ejercicio \theejercicio} \ifx&#1&\else - #1\fi \hfill \puntos{#2}}
+    left=10pt,
+    right=10pt,
+    top=8pt,
+    bottom=8pt
   ]
 }{%
   \end{tcolorbox}
+  \vspace{0.5cm}
 }
 
 % ========== ESPACIOS PARA DATOS ESTUDIANTE ==========
@@ -220,17 +206,19 @@
 \newenvironment{solucion}{%
   \ifsoluciones
     \begin{tcolorbox}[
-      colback=red!5,
-      colframe=answerred,
+      enhanced,
+      breakable,
+      colback=black!5,
+      colframe=black!50,
       boxrule=1pt,
       rounded corners=3pt,
-      left=5pt,
-      right=5pt,
-      top=5pt,
-      bottom=5pt,
-      breakable
+      left=8pt,
+      right=8pt,
+      top=8pt,
+      bottom=8pt,
+      title={\textbf{SOLUCIÓN}},
+      fonttitle=\bfseries
     ]
-    \textbf{\color{answerred}SOLUCIÓN:}\\
   \fi
 }{%
   \ifsoluciones

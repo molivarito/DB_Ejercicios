@@ -38,14 +38,6 @@
 \definecolor{pucblue}{RGB}{0, 56, 101}
 \definecolor{pucgold}{RGB}{198, 146, 20}
 \definecolor{pucgray}{RGB}{88, 89, 91}
-\definecolor{lightblue}{RGB}{230, 242, 255}
-\definecolor{lightgreen}{RGB}{232, 245, 233}
-\definecolor{practicecolor}{RGB}{76, 175, 80}
-
-% ========== CONFIGURACIÓN DE PÁGINA ==========
-\setlength{\headheight}{50pt}
-\setlength{\headsep}{15pt}
-\setlength{\footskip}{25pt}
 
 % ========== HEADER Y FOOTER ==========
 \pagestyle{fancy}
@@ -57,16 +49,16 @@
     \includegraphics[width=1.5cm]{logo-uc.pdf}
   \end{minipage}%
   \begin{minipage}{0.85\textwidth}
-    \small\color{pucblue}
+    \small
     \textbf{Pontificia Universidad Católica de Chile}\\
     \textbf{IEE2103 - Señales y Sistemas}
   \end{minipage}
 }
 
 % Footer
-\fancyfoot[L]{\color{pucgray}\small Guía de Ejercicios}
-\fancyfoot[C]{\color{pucgray}\small Página \thepage}
-\fancyfoot[R]{\color{pucgray}\small Prof. Patricio de la Cuadra}
+\fancyfoot[L]{\small Guía de Ejercicios}
+\fancyfoot[C]{\small Página \thepage}
+\fancyfoot[R]{\small Prof. Patricio de la Cuadra}
 
 % ========== COMANDOS PERSONALIZADOS ==========
 % Funciones especiales de señales (mismas que en prueba)
@@ -99,27 +91,16 @@
 % ========== COMANDO PARA TÍTULO DE GUÍA ==========
 \newcommand{\tituloGuiaPrincipal}{%
   \begin{center}
-    % Título principal
-    \begin{tcolorbox}[
-      enhanced,
-      colback=practicecolor,
-      coltext=white,
-      boxrule=0pt,
-      rounded corners=12pt,
-      center title,
-      fonttitle=\LARGE\bfseries,
-      title=\tituloGuia,
-      drop shadow
-    ]
-    \end{tcolorbox}
+    % Título principal sobrio
+    {\LARGE\bfseries\tituloGuia}
     
     \vspace{0.4cm}
     
     % Información de la guía
     \begin{tcolorbox}[
-      colback=lightgreen,
-      colframe=practicecolor,
-      boxrule=1.5pt,
+      colback=black!5,
+      colframe=black,
+      boxrule=1pt,
       rounded corners=8pt,
       center
     ]
@@ -136,79 +117,45 @@
     \vspace{0.3cm}
     
     % Línea divisoria
-    \textcolor{practicecolor}{\rule{\textwidth}{1.5pt}}
+    \rule{\textwidth}{1.5pt}
   \end{center}
   
   \vspace{0.5cm}
 }
 
 % ========== COMANDOS PARA DIFICULTAD ==========
-\newcommand{\basico}{%
-  \begin{tikzpicture}[baseline=(current bounding box.center)]
-    \node[draw=green!70!black, fill=green!20, rounded corners=3pt, 
-          inner sep=2pt, minimum width=1.5cm] {\small\textbf{Básico}};
-  \end{tikzpicture}%
-}
-
-\newcommand{\intermedio}{%
-  \begin{tikzpicture}[baseline=(current bounding box.center)]
-    \node[draw=orange!70!black, fill=orange!20, rounded corners=3pt, 
-          inner sep=2pt, minimum width=1.5cm] {\small\textbf{Intermedio}};
-  \end{tikzpicture}%
-}
-
-\newcommand{\avanzado}{%
-  \begin{tikzpicture}[baseline=(current bounding box.center)]
-    \node[draw=red!70!black, fill=red!20, rounded corners=3pt, 
-          inner sep=2pt, minimum width=1.5cm] {\small\textbf{Avanzado}};
-  \end{tikzpicture}%
-}
-
-\newcommand{\desafio}{%
-  \begin{tikzpicture}[baseline=(current bounding box.center)]
-    \node[draw=purple!70!black, fill=purple!20, rounded corners=3pt, 
-          inner sep=2pt, minimum width=1.5cm] {\small\textbf{Desafío}};
-  \end{tikzpicture}%
-}
+\newcommand{\basico}{\texttt{[Básico]}}
+\newcommand{\intermedio}{\texttt{[Intermedio]}}
+\newcommand{\avanzado}{\texttt{[Avanzado]}}
+\newcommand{\desafio}{\texttt{[Desafío]}}
 
 % ========== ENTORNO PARA EJERCICIOS ==========
 \newcounter{ejercicio}
 \newenvironment{ejercicio}[3][]{%
   \stepcounter{ejercicio}
   \vspace{0.6cm}
-  \noindent
-  \begin{tcolorbox}[
-    enhanced,
-    breakable,
-    colback=white,
-    colframe=practicecolor,
-    boxrule=1pt,
-    rounded corners=5pt,
-    left=10pt,
-    right=10pt,
-    top=8pt,
-    bottom=8pt
-  ]
-  \textbf{\color{practicecolor}Ejercicio \theejercicio} 
-  \ifx&#1&\else\textbf{ - #1}\fi
-  \hfill 
-  \textbf{Tiempo:} #2 min \quad #3
-  
+  % Usamos tabularx para un título robusto que maneja saltos de línea
+  \noindent\begin{tabularx}{\linewidth}{@{} X r @{}}
+    \textbf{Ejercicio \theejercicio} \ifx&#1&\else\textbf{ - #1}\fi
+    &
+    \textbf{Tiempo:} #2 min \quad #3
+  \end{tabularx}
+  \hrule
   \vspace{0.3cm}
 }{%
-  \end{tcolorbox}
+  \vspace{0.5cm}
 }
 
 % ========== ENTORNOS PARA SECCIONES TEMÁTICAS ==========
 \newenvironment{unidadintro}{%
   \begin{tcolorbox}[
     enhanced,
-    colback=blue!5,
-    colframe=pucblue,
-    boxrule=1.5pt,
+    colback=black!5,
+    colframe=black,
+    boxrule=1pt,
     rounded corners=8pt,
     title={\textbf{📚 Introducción}},
-    fonttitle=\bfseries\color{pucblue}
+    fonttitle=\bfseries
   ]
 }{%
   \end{tcolorbox}
@@ -218,12 +165,12 @@
 \newenvironment{unidadconceptos}{%
   \begin{tcolorbox}[
     enhanced,
-    colback=green!5,
-    colframe=green!70!black,
-    boxrule=1.5pt,
+    colback=black!5,
+    colframe=black,
+    boxrule=1pt,
     rounded corners=8pt,
     title={\textbf{🔑 Conceptos Clave}},
-    fonttitle=\bfseries\color{green!70!black}
+    fonttitle=\bfseries
   ]
 }{%
   \end{tcolorbox}
@@ -233,12 +180,12 @@
 \newenvironment{unidadformulas}{%
   \begin{tcolorbox}[
     enhanced,
-    colback=orange!5,
-    colframe=orange!70!black,
-    boxrule=1.5pt,
+    colback=black!5,
+    colframe=black,
+    boxrule=1pt,
     rounded corners=8pt,
     title={\textbf{📐 Fórmulas Importantes}},
-    fonttitle=\bfseries\color{orange!70!black}
+    fonttitle=\bfseries
   ]
 }{%
   \end{tcolorbox}
@@ -248,8 +195,8 @@
 % ========== COMANDO PARA HINTS Y TIPS ==========
 \newcommand{\tip}[1]{%
   \begin{tcolorbox}[
-    colback=yellow!10,
-    colframe=orange,
+    colback=black!5,
+    colframe=black!60,
     boxrule=1pt,
     rounded corners=3pt,
     left=8pt,
@@ -257,14 +204,14 @@
     top=5pt,
     bottom=5pt
   ]
-  \textbf{💡 TIP:} #1
+  \textbf{TIP:} #1
   \end{tcolorbox}
 }
 
 \newcommand{\atencion}[1]{%
   \begin{tcolorbox}[
-    colback=red!10,
-    colframe=red,
+    colback=black!5,
+    colframe=black!60,
     boxrule=1pt,
     rounded corners=3pt,
     left=8pt,
@@ -272,7 +219,7 @@
     top=5pt,
     bottom=5pt
   ]
-  \textbf{⚠️ ATENCIÓN:} #1
+  \textbf{ATENCIÓN:} #1
   \end{tcolorbox}
 }
 
@@ -286,15 +233,15 @@
     \begin{tcolorbox}[
       enhanced,
       breakable,
-      colback=green!5,
-      colframe=green!70!black,
+      colback=black!5,
+      colframe=black!50,
       boxrule=1pt,
       rounded corners=5pt,
       left=8pt,
       right=8pt,
       top=8pt,
       bottom=8pt,
-      title={\textbf{\color{green!70!black}✅ SOLUCIÓN}},
+      title={\textbf{SOLUCIÓN}},
       fonttitle=\bfseries
     ]
   \fi
@@ -312,12 +259,12 @@
   \vspace{0.8cm}
   \begin{tcolorbox}[
     enhanced,
-    colback=pucblue!5,
-    colframe=pucblue,
-    boxrule=2pt,
+    colback=black!5,
+    colframe=black,
+    boxrule=1pt,
     rounded corners=8pt,
     title={\textbf{#1}},
-    fonttitle=\Large\bfseries\color{pucblue}
+    fonttitle=\Large\bfseries
   ]
   \textit{#2}
   \end{tcolorbox}
@@ -330,12 +277,12 @@
 \newcommand{\objetivos}[1]{%
   \begin{tcolorbox}[
     enhanced,
-    colback=pucgold!10,
-    colframe=pucgold,
-    boxrule=1.5pt,
+    colback=black!5,
+    colframe=black,
+    boxrule=1pt,
     rounded corners=8pt,
     title={\textbf{🎯 OBJETIVOS DE APRENDIZAJE}},
-    fonttitle=\bfseries\color{pucgold}
+    fonttitle=\bfseries
   ]
   \begin{itemize}[leftmargin=20pt, itemsep=5pt]
     #1
@@ -556,12 +503,12 @@
 % ========== RECURSOS ADICIONALES ==========
 \begin{tcolorbox}[
   enhanced,
-  colback=pucblue!5,
-  colframe=pucblue,
-  boxrule=1.5pt,
+  colback=black!5,
+  colframe=black,
+  boxrule=1pt,
   rounded corners=8pt,
   title={\textbf{📖 RECURSOS ADICIONALES}},
-  fonttitle=\bfseries\color{pucblue}
+  fonttitle=\bfseries
 ]
 \begin{itemize}
   \item \textbf{Libro texto:} "Señales y Sistemas: Fundamentos Matemáticos", Pablo Alvarado Moya, Cap. 3-4
@@ -575,12 +522,12 @@
 \vfill
 \begin{center}
   \begin{tikzpicture}
-    \draw[practicecolor, line width=1.5pt] (0,0) -- (\textwidth,0);
+    \draw[black, line width=1pt] (0,0) -- (\textwidth,0);
   \end{tikzpicture}
   \vspace{0.3cm}
   
-  \textcolor{pucgray}{\large ¡Practica hace al maestro!}\\
-  \textcolor{pucgray}{\small Consulta en ayudantías o Discord si tienes dudas}
+  {\large ¡Practica hace al maestro!}\\
+  {\small Consulta en ayudantías o Discord si tienes dudas}
 \end{center}
 
 \end{document}

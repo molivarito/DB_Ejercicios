@@ -69,32 +69,15 @@
 
 % Header más elegante
 \fancyhead[L]{%
-  \begin{tikzpicture}[remember picture, overlay]
-    \node[anchor=north west] at (current page.north west) {
-      \begin{tcolorbox}[
-        width=\paperwidth,
-        height=2cm,
-        colback=white,
-        colframe=pucblue,
-        boxrule=2pt,
-        sharp corners,
-        left=2cm,
-        right=2cm,
-        top=0.3cm,
-        bottom=0.3cm
-      ]
-        \begin{minipage}{0.12\textwidth}
-          \includegraphics[width=1.8cm]{logo_uc_medio.jpg}
-        \end{minipage}%
-        \begin{minipage}{0.88\textwidth}
-          \color{pucblue}
-          \textbf{\Large Pontificia Universidad Católica de Chile}\\
-          \textbf{Escuela de Ingeniería $\bullet$ Departamento de Ingeniería Eléctrica}\\
-          \textbf{IEE2103 – Señales y Sistemas}
-        \end{minipage}
-      \end{tcolorbox}
-    };
-  \end{tikzpicture}
+  \begin{minipage}{0.12\textwidth}
+    \includegraphics[width=1.8cm]{logo-uc.pdf}
+  \end{minipage}%
+  \begin{minipage}{0.88\textwidth}
+    \color{pucblue}
+    \textbf{\Large Pontificia Universidad Católica de Chile}\\
+    \textbf{Escuela de Ingeniería $\bullet$ Departamento de Ingeniería Eléctrica}\\
+    \textbf{IEE2103 – Señales y Sistemas}
+  \end{minipage}
 }
 
 % Footer
@@ -116,31 +99,20 @@
 \newcommand{\tituloTarea}{%
   \vspace{2.5cm}
   \begin{center}
-    % Título principal con gradiente visual
-    \begin{tcolorbox}[
-      enhanced,
-      colback=pucblue,
-      coltext=white,
-      boxrule=0pt,
-      rounded corners=15pt,
-      shadow={2mm}{-2mm}{0mm}{gray!50},
-      center title,
-      fonttitle=\Huge\bfseries,
-      title=Tarea \numeroTarea
-    ]
-    \end{tcolorbox}
+    % Título principal sobrio
+    {\Huge\bfseries Tarea \numeroTarea}
     
     \vspace{0.8cm}
     
     % Información de entrega destacada
     \begin{tcolorbox}[
-      colback=pucgold!20,
-      colframe=pucgold,
-      boxrule=2pt,
-      rounded corners=10pt,
+      colback=white,
+      colframe=black,
+      boxrule=1pt,
+      rounded corners=5pt,
       center,
-      fonttitle=\Large\bfseries,
-      title={\textcolor{pucgold}{📅 INFORMACIÓN DE ENTREGA}}
+      fonttitle=\large\bfseries,
+      title={INFORMACIÓN DE ENTREGA}
     ]
       \begin{tabularx}{0.8\textwidth}{@{}X@{\hspace{1cm}}X@{}}
         \textbf{\Large Fecha límite:} & \textbf{\Large \fechaEntrega} \\[0.3cm]
@@ -152,38 +124,29 @@
     \vspace{0.5cm}
     
     % Línea divisoria elegante
-    \begin{tikzpicture}
-      \draw[pucblue, line width=2pt] (0,0) -- (\textwidth,0);
-      \draw[pucgold, line width=1pt] (0,0.1) -- (\textwidth,0.1);
-    \end{tikzpicture}
+    \rule{\textwidth}{1.5pt}
   \end{center}
   
   \vspace{1cm}
 }
 
 % ========== COMANDOS PARA PUNTOS ==========
-\newcommand{\puntos}[1]{%
-  \begin{tikzpicture}[baseline=(current bounding box.center)]
-    \node[draw=pucblue, fill=lightblue, rounded corners=5pt, 
-          inner sep=4pt, minimum width=2cm] {\textbf{[#1 puntos]}};
-  \end{tikzpicture}%
-}
+\newcommand{\puntos}[1]{\texttt{[#1 puntos]}}
 
 % ========== ENTORNO PARA INSTRUCCIONES ==========
 \newenvironment{instrucciones}{%
   \begin{tcolorbox}[
     enhanced,
-    colback=lightblue,
-    colframe=pucblue,
-    boxrule=2pt,
+    colback=black!5, % Fondo gris muy claro
+    colframe=black,
+    boxrule=1pt,
     rounded corners=8pt,
     left=15pt,
     right=15pt,
     top=12pt,
     bottom=12pt,
-    drop shadow,
-    title={\textbf{\Large 📋 INSTRUCCIONES GENERALES}},
-    fonttitle=\bfseries\color{pucblue}
+    title={\textbf{\Large INSTRUCCIONES GENERALES}},
+    fonttitle=\bfseries\color{black}
   ]
   \begin{enumerate}[leftmargin=25pt, itemsep=8pt]
 }{%
@@ -193,25 +156,9 @@
 
 % ========== ENTORNOS PARA SECCIONES ==========
 \newenvironment{ejerciciosteoricos}{%
-  \newpage
-  \begin{tcolorbox}[
-    enhanced,
-    colback=theoreticalcolor!10,
-    colframe=theoreticalcolor,
-    boxrule=2pt,
-    rounded corners=10pt,
-    center title,
-    fonttitle=\Large\bfseries,
-    title={\textcolor{theoreticalcolor}{📚 EJERCICIOS TEÓRICOS}},
-    attach boxed title to top center={yshift=-5pt},
-    boxed title style={
-      colback=theoreticalcolor,
-      coltext=white,
-      rounded corners=5pt,
-      boxrule=0pt
-    }
-  ]
-  \end{tcolorbox}
+  \clearpage
+  \section*{EJERCICIOS TEÓRICOS}
+  \hrule
   \vspace{0.5cm}
   \begin{enumerate}[leftmargin=20pt, itemsep=15pt]
 }{%
@@ -246,8 +193,11 @@
 
 % ========== ENTORNO PARA EJERCICIOS INDIVIDUALES ==========
 \newenvironment{ejercicio}[2][]{%
-  \item \textbf{#1} \hfill \puntos{#2}
-  \vspace{0.3cm}
+  \item
+  % Usamos tabularx para un título robusto que maneja saltos de línea
+  \noindent\begin{tabularx}{\linewidth}{@{} X r @{}}
+    \textbf{#1} & \puntos{#2}
+  \end{tabularx}
   
   \begin{tcolorbox}[
     enhanced,
@@ -287,7 +237,7 @@
 
 \newenvironment{codigo}{%
   \begin{tcolorbox}[
-    colback=gray!5,
+    colback=black!5,
     colframe=pucgray,
     rounded corners=5pt,
     title={\textbf{Código Python}},
@@ -302,8 +252,8 @@
 % ========== COMANDO PARA HINTS ==========
 \newcommand{\hint}[1]{%
   \begin{tcolorbox}[
-    colback=yellow!10,
-    colframe=orange,
+    colback=black!5,
+    colframe=black!60,
     boxrule=1pt,
     rounded corners=3pt,
     left=8pt,
@@ -311,7 +261,7 @@
     top=5pt,
     bottom=5pt
   ]
-  \textbf{💡 HINT:} #1
+  \textbf{HINT:} #1
   \end{tcolorbox}
 }
 
@@ -324,15 +274,15 @@
     \begin{tcolorbox}[
       enhanced,
       breakable,
-      colback=answerred!5,
-      colframe=answerred,
-      boxrule=1.5pt,
+      colback=black!5,
+      colframe=black!50,
+      boxrule=1pt,
       rounded corners=5pt,
       left=8pt,
       right=8pt,
       top=8pt,
       bottom=8pt,
-      title={\textbf{\color{answerred}✓ SOLUCIÓN}},
+      title={\textbf{SOLUCIÓN}},
       fonttitle=\bfseries
     ]
   \fi
